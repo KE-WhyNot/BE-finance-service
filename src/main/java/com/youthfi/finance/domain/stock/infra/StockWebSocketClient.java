@@ -1,0 +1,115 @@
+package com.youthfi.finance.domain.stock.infra;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+import java.net.URI;
+import com.youthfi.finance.domain.stock.application.dto.StockRealtimeMessageDto;
+import java.util.Arrays;
+import java.util.List;
+import java.time.LocalDateTime;
+
+public class StockWebSocketClient extends WebSocketClient {
+    private final String approvalKey;
+    private final String trKey;
+
+    public StockWebSocketClient(URI serverUri, String approvalKey, String trKey) {
+        super(serverUri);
+        this.approvalKey = approvalKey;
+        this.trKey = trKey;
+    }
+
+    @Override
+    public void onOpen(ServerHandshake handshakedata) {
+        System.out.println("WebSocket 연결 성공!");
+        // 실시간 호가 구독 (body.input 구조로 수정)
+        String subscribeOrderbook = String.format(
+            "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"H0STASP0\",\"tr_key\":\"%s\"}}}",
+            approvalKey, trKey
+        );
+        send(subscribeOrderbook);
+        // 실시간 체결가 구독 (body.input 구조로 수정)
+        String subscribeTrade = String.format(
+            "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"H0STCNT0\",\"tr_key\":\"%s\"}}}",
+            approvalKey, trKey
+        );
+        send(subscribeTrade);
+    }
+
+    @Override
+    public void onMessage(String message) {
+        // 구분자 기반 파싱
+        if (message.contains("|") && message.contains("^")) {
+            try {
+                String[] parts = message.split("\\|");
+                if (parts.length > 1) {
+                    String trId = parts[1];
+                    String[] fields = parts[3].split("\\^");
+                    if ("H0STASP0".equals(trId)) {
+                        // 호가 파싱 (4쌍만, 잔량 인덱스 공식문서 예시 반영)
+                        String askPrice1 = fields.length > 3 ? fields[3] : "0";
+                        String askPrice2 = fields.length > 4 ? fields[4] : "0";
+                        String askPrice3 = fields.length > 5 ? fields[5] : "0";
+                        String askPrice4 = fields.length > 6 ? fields[6] : "0";
+                        String bidPrice1 = fields.length > 13 ? fields[13] : "0";
+                        String bidPrice2 = fields.length > 14 ? fields[14] : "0";
+                        String bidPrice3 = fields.length > 15 ? fields[15] : "0";
+                        String bidPrice4 = fields.length > 16 ? fields[16] : "0";
+                        // 매도호가잔량1~4: 23~26, 매수호가잔량1~4: 33~36
+                        String askQty1 = fields.length > 23 ? fields[23] : "0";
+                        String askQty2 = fields.length > 24 ? fields[24] : "0";
+                        String askQty3 = fields.length > 25 ? fields[25] : "0";
+                        String askQty4 = fields.length > 26 ? fields[26] : "0";
+                        String bidQty1 = fields.length > 33 ? fields[33] : "0";
+                        String bidQty2 = fields.length > 34 ? fields[34] : "0";
+                        String bidQty3 = fields.length > 35 ? fields[35] : "0";
+                        String bidQty4 = fields.length > 36 ? fields[36] : "0";
+                        List<Integer> askPrices = Arrays.asList(askPrice1, askPrice2, askPrice3, askPrice4).stream().map(Integer::parseInt).toList();
+                        List<Integer> bidPrices = Arrays.asList(bidPrice1, bidPrice2, bidPrice3, bidPrice4).stream().map(Integer::parseInt).toList();
+                        List<Integer> askQtys = Arrays.asList(askQty1, askQty2, askQty3, askQty4).stream().map(Integer::parseInt).toList();
+                        List<Integer> bidQtys = Arrays.asList(bidQty1, bidQty2, bidQty3, bidQty4).stream().map(Integer::parseInt).toList();
+                        StockRealtimeMessageDto dto = new StockRealtimeMessageDto();
+                        dto.setSymbol(trKey);
+                        dto.setAskPrices(askPrices);
+                        dto.setBidPrices(bidPrices);
+                        dto.setAskQtys(askQtys);
+                        dto.setBidQtys(bidQtys);
+                        dto.setTimestamp(LocalDateTime.now().toString());
+                        // 필요시 DTO를 프론트로 전달하는 로직 추가
+                        System.out.println(dto);
+                    } else if ("H0STCNT0".equals(trId)) {
+                        // 체결가 파싱
+                        String stckPrpr = fields.length > 2 ? fields[2] : "0";
+                        String prdyVrss = fields.length > 4 ? fields[4] : "0";
+                        String prdyCtrt = fields.length > 5 ? fields[5] : "0";
+                        String stckLwpr = fields.length > 7 ? fields[7] : "0";
+                        String stckHgpr = fields.length > 8 ? fields[8] : "0";
+                        StockRealtimeMessageDto dto = new StockRealtimeMessageDto();
+                        dto.setSymbol(trKey);
+                        dto.setStckPrpr(Integer.parseInt(stckPrpr));
+                        dto.setPrdyVrss(Integer.parseInt(prdyVrss));
+                        dto.setPrdyCtrt(Double.parseDouble(prdyCtrt));
+                        dto.setStckLwpr(Integer.parseInt(stckLwpr));
+                        dto.setStckHgpr(Integer.parseInt(stckHgpr));
+                        dto.setTimestamp(LocalDateTime.now().toString());
+                        // 필요시 DTO를 프론트로 전달하는 로직 추가
+                        System.out.println(dto);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("실시간 데이터 수신(파싱실패): " + message);
+            }
+        } else {
+            System.out.println("실시간 데이터 수신: " + message);
+        }
+    }
+
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        System.out.println("WebSocket 연결 종료: " + reason);
+    }
+
+    @Override
+    public void onError(Exception ex) {
+        ex.printStackTrace();
+    }
+}

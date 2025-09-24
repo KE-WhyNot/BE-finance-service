@@ -64,3 +64,8 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# kis api 설정
+kis:
+  appkey: PSTTHAZgn6TJ8L3gn4ChSCgztAPrXmynbzB1
+  appsecret: /V7D/xtgUFehEEwx410EbxHLSK5rAtXFE0tx7gAI2v/OKQ7S2OmInyL5Jy4ha0YmzcEJOKz1UOqBMuWb79Igev3jA6xvaftcoXj3f/MWniqKkU+yfs6GLOBCAOFQI/I6uKvaxsZK+U7CNEj3UruXf5XZlc23auUvI1SQT2zfqV771DERDqs=
