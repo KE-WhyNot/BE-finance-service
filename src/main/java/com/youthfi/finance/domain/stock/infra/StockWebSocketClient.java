@@ -74,8 +74,7 @@ public class StockWebSocketClient extends WebSocketClient {
                         dto.setAskQtys(askQtys);
                         dto.setBidQtys(bidQtys);
                         dto.setTimestamp(LocalDateTime.now().toString());
-                        // 필요시 DTO를 프론트로 전달하는 로직 추가
-                        System.out.println(dto);
+                        
                     } else if ("H0STCNT0".equals(trId)) {
                         // 체결가 파싱
                         String stckPrpr = fields.length > 2 ? fields[2] : "0";
@@ -91,8 +90,7 @@ public class StockWebSocketClient extends WebSocketClient {
                         dto.setStckLwpr(Integer.parseInt(stckLwpr));
                         dto.setStckHgpr(Integer.parseInt(stckHgpr));
                         dto.setTimestamp(LocalDateTime.now().toString());
-                        // 필요시 DTO를 프론트로 전달하는 로직 추가
-                        System.out.println(dto);
+                        
                     }
                 }
             } catch (Exception e) {
