@@ -14,23 +14,24 @@ public class KisTokenService {
     private final KisApiProperties kisApiProperties;
     private final RestTemplate restTemplate;
 
-    private String accessToken;
-    private LocalDateTime tokenExpiredAt;
+    // appkey별 토큰/만료 캐싱
+    private final Map<String, String> accessTokenMap = new HashMap<>();
+    private final Map<String, LocalDateTime> tokenExpiredAtMap = new HashMap<>();
 
     public KisTokenService(KisApiProperties kisApiProperties, RestTemplate restTemplate) {
         this.kisApiProperties = kisApiProperties;
         this.restTemplate = restTemplate;
     }
 
-    public synchronized void fetchToken() {
+    public synchronized void fetchToken(String appkey, String appsecret) {
         String url = "https://openapi.koreainvestment.com:9443/oauth2/tokenP";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, String> body = new HashMap<>();
         body.put("grant_type", "client_credentials");
-        body.put("appkey", kisApiProperties.getAppkey());
-        body.put("appsecret", kisApiProperties.getAppsecret());
+        body.put("appkey", appkey);
+        body.put("appsecret", appsecret);
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
@@ -38,22 +39,25 @@ public class KisTokenService {
 
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             Map<String, Object> respBody = response.getBody();
-            this.accessToken = (String) respBody.get("access_token");
+            String token = (String) respBody.get("access_token");
             String expiredAtStr = (String) respBody.get("access_token_token_expired");
-            this.tokenExpiredAt = LocalDateTime.parse(expiredAtStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime expiredAt = LocalDateTime.parse(expiredAtStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            accessTokenMap.put(appkey, token);
+            tokenExpiredAtMap.put(appkey, expiredAt);
         } else {
             throw new RuntimeException("토큰 발급 실패: " + response.getStatusCode());
         }
     }
 
-    public boolean isTokenExpiringSoon() {
+    public boolean isTokenExpiringSoon(String appkey) {
+        LocalDateTime tokenExpiredAt = tokenExpiredAtMap.get(appkey);
         return tokenExpiredAt == null || tokenExpiredAt.minusMinutes(10).isBefore(LocalDateTime.now());
     }
 
-    public synchronized String getValidToken() {
-        if (accessToken == null || isTokenExpiringSoon()) {
-            fetchToken();
+    public synchronized String getValidToken(String appkey, String appsecret) {
+        if (!accessTokenMap.containsKey(appkey) || isTokenExpiringSoon(appkey)) {
+            fetchToken(appkey, appsecret);
         }
-        return accessToken;
+        return accessTokenMap.get(appkey);
     }
 }

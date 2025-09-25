@@ -3,36 +3,35 @@ package com.youthfi.finance.domain.stock.infra;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
-import com.youthfi.finance.domain.stock.application.dto.StockRealtimeMessageDto;
+import com.youthfi.finance.domain.stock.application.dto.response.StockRealtimeMessageDto;
 import java.util.Arrays;
 import java.util.List;
 import java.time.LocalDateTime;
 
 public class StockWebSocketClient extends WebSocketClient {
+    private final String appkey;
     private final String approvalKey;
-    private final String trKey;
+    private final String trId;
+    private final List<String> trKeys; // 여러 종목 지원
 
-    public StockWebSocketClient(URI serverUri, String approvalKey, String trKey) {
+    public StockWebSocketClient(URI serverUri, String appkey, String approvalKey, String trId, List<String> trKeys) {
         super(serverUri);
+        this.appkey = appkey;
         this.approvalKey = approvalKey;
-        this.trKey = trKey;
+        this.trId = trId;
+        this.trKeys = trKeys;
     }
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        System.out.println("WebSocket 연결 성공!");
-        // 실시간 호가 구독 (body.input 구조로 수정)
-        String subscribeOrderbook = String.format(
-            "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"H0STASP0\",\"tr_key\":\"%s\"}}}",
-            approvalKey, trKey
-        );
-        send(subscribeOrderbook);
-        // 실시간 체결가 구독 (body.input 구조로 수정)
-        String subscribeTrade = String.format(
-            "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"H0STCNT0\",\"tr_key\":\"%s\"}}}",
-            approvalKey, trKey
-        );
-        send(subscribeTrade);
+        System.out.println("WebSocket 연결 성공! (appkey=" + appkey + ", trId=" + trId + ")");
+        for (String trKey : trKeys) {
+            String subscribeMsg = String.format(
+                "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"%s\",\"tr_key\":\"%s\"}}}",
+                approvalKey, trId, trKey
+            );
+            send(subscribeMsg);
+        }
     }
 
     @Override
@@ -68,7 +67,9 @@ public class StockWebSocketClient extends WebSocketClient {
                         List<Integer> askQtys = Arrays.asList(askQty1, askQty2, askQty3, askQty4).stream().map(Integer::parseInt).toList();
                         List<Integer> bidQtys = Arrays.asList(bidQty1, bidQty2, bidQty3, bidQty4).stream().map(Integer::parseInt).toList();
                         StockRealtimeMessageDto dto = new StockRealtimeMessageDto();
-                        dto.setSymbol(trKey);
+                        String symbol = fields.length > 0 ? fields[0] : "";
+                        
+                        dto.setSymbol(symbol);
                         dto.setAskPrices(askPrices);
                         dto.setBidPrices(bidPrices);
                         dto.setAskQtys(askQtys);
@@ -83,7 +84,9 @@ public class StockWebSocketClient extends WebSocketClient {
                         String stckLwpr = fields.length > 7 ? fields[7] : "0";
                         String stckHgpr = fields.length > 8 ? fields[8] : "0";
                         StockRealtimeMessageDto dto = new StockRealtimeMessageDto();
-                        dto.setSymbol(trKey);
+                        String symbol = fields.length > 0 ? fields[0] : "";
+
+                        dto.setSymbol(symbol);
                         dto.setStckPrpr(Integer.parseInt(stckPrpr));
                         dto.setPrdyVrss(Integer.parseInt(prdyVrss));
                         dto.setPrdyCtrt(Double.parseDouble(prdyCtrt));
