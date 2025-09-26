@@ -1,6 +1,6 @@
 package com.youthfi.finance.global.swagger;
 
-import com.youthfi.finance.domain.stock.application.dto.StockRealtimeMessageDto;
+import com.youthfi.finance.domain.stock.application.dto.response.StockRealtimeMessageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
