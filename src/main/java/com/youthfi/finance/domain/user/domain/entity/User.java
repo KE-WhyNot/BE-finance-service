@@ -82,6 +82,9 @@ public class User extends BaseEntity {
     }
 
     public void subtractBalance(BigDecimal amount) {
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalStateException("잔액이 부족합니다.");
+        }
         this.balance = this.balance.subtract(amount);
     }
 }
