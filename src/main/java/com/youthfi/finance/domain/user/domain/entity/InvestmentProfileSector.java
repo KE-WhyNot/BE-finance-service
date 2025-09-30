@@ -41,4 +41,5 @@ public class InvestmentProfileSector extends BaseEntity {
         this.investmentProfile = investmentProfile;
         this.sector = sector;
     }
+
 }

@@ -1,9 +1,11 @@
 package com.youthfi.finance.global.service;
 
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -13,14 +15,16 @@ import java.util.Map;
 public class KisTokenService {
     private final KisApiProperties kisApiProperties;
     private final RestTemplate restTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    // appkey별 토큰/만료 캐싱
-    private final Map<String, String> accessTokenMap = new HashMap<>();
-    private final Map<String, LocalDateTime> tokenExpiredAtMap = new HashMap<>();
+    // Redis 키 패턴
+    private static final String TOKEN_KEY_PREFIX = "kis:token:";
+    private static final String EXPIRY_KEY_PREFIX = "kis:expiry:";
 
-    public KisTokenService(KisApiProperties kisApiProperties, RestTemplate restTemplate) {
+    public KisTokenService(KisApiProperties kisApiProperties, RestTemplate restTemplate, RedisTemplate<String, String> redisTemplate) {
         this.kisApiProperties = kisApiProperties;
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     public synchronized void fetchToken(String appkey, String appsecret) {
@@ -42,22 +46,87 @@ public class KisTokenService {
             String token = (String) respBody.get("access_token");
             String expiredAtStr = (String) respBody.get("access_token_token_expired");
             LocalDateTime expiredAt = LocalDateTime.parse(expiredAtStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            accessTokenMap.put(appkey, token);
-            tokenExpiredAtMap.put(appkey, expiredAt);
+            
+            // Redis에 토큰과 만료시간 저장 (24시간 TTL)
+            String tokenKey = TOKEN_KEY_PREFIX + appkey;
+            String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+            
+            redisTemplate.opsForValue().set(tokenKey, token, Duration.ofHours(24));
+            redisTemplate.opsForValue().set(expiryKey, expiredAt.toString(), Duration.ofHours(24));
         } else {
             throw new RuntimeException("토큰 발급 실패: " + response.getStatusCode());
         }
     }
 
     public boolean isTokenExpiringSoon(String appkey) {
-        LocalDateTime tokenExpiredAt = tokenExpiredAtMap.get(appkey);
-        return tokenExpiredAt == null || tokenExpiredAt.minusMinutes(10).isBefore(LocalDateTime.now());
+        String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+        String expiryStr = redisTemplate.opsForValue().get(expiryKey);
+        
+        if (expiryStr == null) {
+            return true; // 토큰이 없으면 갱신 필요
+        }
+        
+        try {
+            LocalDateTime tokenExpiredAt = LocalDateTime.parse(expiryStr);
+            // 24시간 토큰이므로 만료 1시간 전에 갱신 (23시간 후)
+            return tokenExpiredAt.minusHours(1).isBefore(LocalDateTime.now());
+        } catch (Exception e) {
+            return true; // 파싱 실패시 갱신 필요
+        }
     }
 
     public synchronized String getValidToken(String appkey, String appsecret) {
-        if (!accessTokenMap.containsKey(appkey) || isTokenExpiringSoon(appkey)) {
+        String tokenKey = TOKEN_KEY_PREFIX + appkey;
+        String token = redisTemplate.opsForValue().get(tokenKey);
+        
+        if (token == null) {
+            System.out.println("새로운 토큰 발급: " + appkey);
             fetchToken(appkey, appsecret);
+            token = redisTemplate.opsForValue().get(tokenKey);
+        } else if (isTokenExpiringSoon(appkey)) {
+            System.out.println("토큰 갱신: " + appkey + " (만료 1시간 전)");
+            fetchToken(appkey, appsecret);
+            token = redisTemplate.opsForValue().get(tokenKey);
+        } else {
+            System.out.println("기존 토큰 재사용: " + appkey);
         }
-        return accessTokenMap.get(appkey);
+        return token;
+    }
+
+    /**
+     * 토큰 상태 정보 조회
+     */
+    public Map<String, Object> getTokenStatus(String appkey) {
+        Map<String, Object> status = new HashMap<>();
+        String tokenKey = TOKEN_KEY_PREFIX + appkey;
+        String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+        
+        String token = redisTemplate.opsForValue().get(tokenKey);
+        String expiryStr = redisTemplate.opsForValue().get(expiryKey);
+        
+        status.put("hasToken", token != null);
+        status.put("expiredAt", expiryStr);
+        status.put("isExpiringSoon", isTokenExpiringSoon(appkey));
+        return status;
+    }
+
+    /**
+     * 모든 토큰 상태 조회
+     */
+    public Map<String, Map<String, Object>> getAllTokenStatus() {
+        Map<String, Map<String, Object>> allStatus = new HashMap<>();
+        
+        // Redis에서 모든 토큰 키 조회
+        String pattern = TOKEN_KEY_PREFIX + "*";
+        var keys = redisTemplate.keys(pattern);
+        
+        if (keys != null) {
+            for (String key : keys) {
+                String appkey = key.substring(TOKEN_KEY_PREFIX.length());
+                allStatus.put(appkey, getTokenStatus(appkey));
+            }
+        }
+        
+        return allStatus;
     }
 }

@@ -44,7 +44,7 @@ public class StockWebSocketClient extends WebSocketClient {
                     String trId = parts[1];
                     String[] fields = parts[3].split("\\^");
                     if ("H0STASP0".equals(trId)) {
-                        // 호가 파싱 (4쌍만, 잔량 인덱스 공식문서 예시 반영)
+                        // 호가 파싱 (4쌍만, 잔량)
                         String askPrice1 = fields.length > 3 ? fields[3] : "0";
                         String askPrice2 = fields.length > 4 ? fields[4] : "0";
                         String askPrice3 = fields.length > 5 ? fields[5] : "0";
