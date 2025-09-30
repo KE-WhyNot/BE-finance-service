@@ -3,7 +3,7 @@ package com.youthfi.finance.domain.stock.domain.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.user.domain.entity.InvestmentProfileSector;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfileSector;
 import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;

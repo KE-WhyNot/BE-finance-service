@@ -1,4 +1,4 @@
-package com.youthfi.finance.domain.user.domain.entity;
+package com.youthfi.finance.domain.portfolio.domain.entity;
 
 import com.youthfi.finance.domain.stock.domain.entity.Sector;
 import com.youthfi.finance.global.common.BaseEntity;
@@ -41,5 +41,6 @@ public class InvestmentProfileSector extends BaseEntity {
         this.investmentProfile = investmentProfile;
         this.sector = sector;
     }
-
 }
+
+

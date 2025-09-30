@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.youthfi.finance.domain.user.domain.entity.UserStock;
+import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;

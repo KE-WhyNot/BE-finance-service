@@ -1,10 +1,11 @@
-package com.youthfi.finance.domain.user.domain.entity;
+package com.youthfi.finance.domain.portfolio.domain.entity;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.stock.domain.entity.PortfolioStock;
+import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
+import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -81,3 +82,5 @@ public class Portfolio extends BaseEntity {
         portfolioStock.setPortfolio(null);
     }
 }
+
+

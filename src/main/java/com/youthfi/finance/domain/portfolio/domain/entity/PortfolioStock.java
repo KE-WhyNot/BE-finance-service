@@ -1,8 +1,9 @@
-package com.youthfi.finance.domain.stock.domain.entity;
+package com.youthfi.finance.domain.portfolio.domain.entity;
 
 import java.math.BigDecimal;
 
-import com.youthfi.finance.domain.user.domain.entity.Portfolio;
+import com.youthfi.finance.domain.stock.domain.entity.Sector;
+import com.youthfi.finance.domain.stock.domain.entity.Stock;
 import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -43,7 +44,7 @@ public class PortfolioStock extends BaseEntity {
     private Sector sector;
 
     @Column(name = "allocation_pct", nullable = false, precision = 5, scale = 2)
-    private BigDecimal allocationPct; // 포트폴리오 내 비율(%)
+    private BigDecimal allocationPct;
 
     @Builder
     public PortfolioStock(Portfolio portfolio, Stock stock, Sector sector, BigDecimal allocationPct) {
@@ -61,3 +62,5 @@ public class PortfolioStock extends BaseEntity {
         this.allocationPct = allocationPct;
     }
 }
+
+
