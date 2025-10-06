@@ -1,6 +1,7 @@
 package com.youthfi.finance.domain.stock.infra;
 
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.service.KisTokenService;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;

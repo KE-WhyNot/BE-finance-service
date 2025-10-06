@@ -1,44 +1,44 @@
 package com.youthfi.finance.domain.portfolio.domain.service;
 
 import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfileSector;
+import com.youthfi.finance.domain.stock.domain.entity.Sector;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileRepository;
+import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileSectorRepository;
+import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class InvestmentProfileService {
 
     private final InvestmentProfileRepository investmentProfileRepository;
+    private final InvestmentProfileSectorRepository investmentProfileSectorRepository;
+    private final SectorRepository sectorRepository;
     private final UserRepository userRepository;
 
-    /**
-     * 새로운 투자성향 프로필을 생성합니다.
-     * 사용자 존재 여부를 확인한 후, 프로필을 생성 및 저장합니다.
-     *
-     * @param userId 사용자 ID
-     * @param investmentProfile 투자성향 유형
-     * @param availableAssets 투자가능 자산
-     * @param investmentGoal 투자 목표
-     * @return 생성된 InvestmentProfile 엔터티
-     * @throws RuntimeException 사용자 미존재 시
-     */
-
-    @Transactional
-    public InvestmentProfile createInvestmentProfile(Long userId, 
+    
+    // 투자성향 프로필 생성
+    public InvestmentProfile createInvestmentProfile(String userId,
                                                    InvestmentProfile.InvestmentProfileType investmentProfile,
-                                                   java.math.BigDecimal availableAssets, 
-                                                   InvestmentProfile.InvestmentGoal investmentGoal) {
+                                                   BigDecimal availableAssets, 
+                                                   InvestmentProfile.InvestmentGoal investmentGoal,
+                                                   List<String> interestedSectorNames) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
 
+        if (availableAssets.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
+        }
+        
         InvestmentProfile profile = InvestmentProfile.builder()
                 .user(user)
                 .investmentProfile(investmentProfile)
@@ -46,103 +46,78 @@ public class InvestmentProfileService {
                 .investmentGoal(investmentGoal)
                 .build();
 
-        return investmentProfileRepository.save(profile);
+        InvestmentProfile savedProfile = investmentProfileRepository.save(profile);
+        
+        // 관심섹터는 이렇게 따로 추가.
+        if (interestedSectorNames != null && !interestedSectorNames.isEmpty()) {
+            addInterestedSectors(savedProfile, interestedSectorNames);
+        }
+        
+        return savedProfile;
     }
 
-    /**
-     * 사용자 ID로 투자성향 프로필을 조회합니다.
-     *
-     * @param userId 사용자 ID
-     * @return Optional<InvestmentProfile>
-     */
 
-    public Optional<InvestmentProfile> getInvestmentProfileByUserId(Long userId) {
+    // 사용자별 투자성향 프로필 조회
+    public Optional<InvestmentProfile> getInvestmentProfileByUserId(String userId) {
         return investmentProfileRepository.findByUserUserId(userId);
     }
-
-    /**
-     * 프로필 ID로 투자성향 프로필을 조회합니다.
-     *
-     * @param profileId 투자성향 프로필 ID
-     * @return Optional<InvestmentProfile>
-     */
-
-    public Optional<InvestmentProfile> getInvestmentProfileById(Long profileId) {
-        return investmentProfileRepository.findById(profileId);
-    }
-
-    /**
-     * 투자성향 프로필을 수정합니다.
-     * 존재하지 않으면 예외를 던지며, 내부 엔터티의 updateProfile 메서드를 통해 갱신 후 저장합니다.
-     *
-     * @param profileId 투자성향 프로필 ID
-     * @param investmentProfile 투자성향 유형
-     * @param availableAssets 투자가능 자산
-     * @param investmentGoal 투자 목표
-     * @return 수정된 InvestmentProfile 엔터티
-     * @throws RuntimeException 투자성향 프로필 미존재 시
-     */
-
-    @Transactional
+    
+    // 투자성향 프로필 수정
     public InvestmentProfile updateInvestmentProfile(Long profileId, 
                                                    InvestmentProfile.InvestmentProfileType investmentProfile,
-                                                   java.math.BigDecimal availableAssets, 
-                                                   InvestmentProfile.InvestmentGoal investmentGoal) {
+                                                   BigDecimal availableAssets, 
+                                                   InvestmentProfile.InvestmentGoal investmentGoal,
+                                                   List<String> interestedSectorNames) {
         InvestmentProfile profile = investmentProfileRepository.findById(profileId)
                 .orElseThrow(() -> new RuntimeException("투자성향을 찾을 수 없습니다: " + profileId));
+
+        if (availableAssets.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
+        }
 
         profile.updateProfile(investmentProfile, availableAssets, investmentGoal);
-        return investmentProfileRepository.save(profile);
+        InvestmentProfile savedProfile = investmentProfileRepository.save(profile);
+        
+        // 관심섹터 처리
+        if (interestedSectorNames != null && !interestedSectorNames.isEmpty()) {
+            addInterestedSectors(savedProfile, interestedSectorNames);
+        }
+        
+        return savedProfile;
     }
 
-    /**
-     * 투자성향 프로필을 삭제합니다.
-     * 존재하지 않으면 예외를 던집니다.
-     *
-     * @param profileId 투자성향 프로필 ID
-     * @throws RuntimeException 투자성향 프로필 미존재 시
-     */
+   
 
-    @Transactional
-    public void deleteInvestmentProfile(Long profileId) {
-        InvestmentProfile profile = investmentProfileRepository.findById(profileId)
-                .orElseThrow(() -> new RuntimeException("투자성향을 찾을 수 없습니다: " + profileId));
-
-        investmentProfileRepository.delete(profile);
-    }
-
-    /**
-     * 특정 투자성향 유형을 가진 프로필 리스트를 조회합니다.
-     *
-     * @param investmentProfile 투자성향 유형
-     * @return 투자성향 리스트
-     */
-
-    public List<InvestmentProfile> getInvestmentProfilesByType(InvestmentProfile.InvestmentProfileType investmentProfile) {
-        return investmentProfileRepository.findByInvestmentProfile(investmentProfile);
-    }
-
-    /**
-     * 특정 투자 목표를 가진 프로필 리스트를 조회합니다.
-     *
-     * @param investmentGoal 투자 목표
-     * @return 투자성향 리스트
-     */
-
-    public List<InvestmentProfile> getInvestmentProfilesByGoal(InvestmentProfile.InvestmentGoal investmentGoal) {
-        return investmentProfileRepository.findByInvestmentGoal(investmentGoal);
-    }
-
-    /**
-     * 사용자에게 투자성향 프로필이 존재하는지 여부를 반환합니다.
-     *
-     * @param userId 사용자 ID
-     * @return 존재 여부(boolean)
-     */
-    
-    public boolean existsInvestmentProfile(Long userId) {
+    // 사용자별 투자성향 프로필 존재여부 조회
+    public boolean existsInvestmentProfile(String userId) {
         return investmentProfileRepository.findByUserUserId(userId).isPresent();
     }
+
+
+    
+    public void addInterestedSectors(InvestmentProfile investmentProfile, List<String> sectorNames) {
+        if (sectorNames == null || sectorNames.isEmpty()) {
+            return;
+        }
+
+        // 기존 관심섹터 삭제
+        List<InvestmentProfileSector> existingSectors = investmentProfileSectorRepository.findByInvestmentProfile(investmentProfile);
+        investmentProfileSectorRepository.deleteAll(existingSectors);
+
+        // 새로운 관심섹터 추가
+        for (String sectorName : sectorNames) {
+            Sector sector = sectorRepository.findBySectorName(sectorName)
+                    .orElseThrow(() -> new RuntimeException("섹터를 찾을 수 없습니다: " + sectorName));
+
+            InvestmentProfileSector investmentProfileSector = InvestmentProfileSector.builder()
+                    .investmentProfile(investmentProfile)
+                    .sector(sector)
+                    .build();
+
+            investmentProfileSectorRepository.save(investmentProfileSector);
+        }
+    }
+
 }
 
 

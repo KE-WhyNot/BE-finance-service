@@ -4,6 +4,8 @@ import com.youthfi.finance.domain.stock.domain.entity.Execution;
 import com.youthfi.finance.domain.stock.domain.entity.Stock;
 import com.youthfi.finance.domain.stock.domain.entity.Sector;
 import com.youthfi.finance.domain.user.domain.entity.User;
+import com.youthfi.finance.domain.stock.domain.entity.UserStock;
+import com.youthfi.finance.domain.stock.domain.repository.UserStockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.ExecutionRepository;
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,17 +28,22 @@ public class TradingService {
     private final UserRepository userRepository;
     private final StockRepository stockRepository;
     private final SectorRepository sectorRepository;
+    private final UserStockRepository userStockRepository;
 
     /**
-     * 주식 매수 처리
+     * 주식 매수 처리 
      */
     @Transactional
-    public Execution executeBuy(Long userId, String stockId, Long quantity, BigDecimal price) {
+    public Execution executeBuy(String userId, String stockId, Long quantity, BigDecimal price) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
 
+        // 비즈니스 규칙 검증
+        validateTradingRequest(quantity, price);
+        validateUserBalance(user, price, quantity);
+        
         BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
         user.subtractBalance(totalPrice);
 
@@ -45,25 +52,45 @@ public class TradingService {
                 .user(user)
                 .stock(stock)
                 .sector(stock.getSector())
-                .date(java.time.LocalDate.now())
-                .isBuy(true)
+                .executedAt(LocalDateTime.now())
+                .executionType(Execution.ExecutionType.BUY)
                 .quantity(quantity)
                 .price(price)
                 .totalPrice(totalPrice)
                 .build();
-        return executionRepository.save(execution);
+        Execution saved = executionRepository.save(execution);
+
+        // 보유주식 업데이트 (평균 매입가/보유수량/평가금액)
+        UserStock userStock = userStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
+                .orElseGet(() -> userStockRepository.save(
+                        UserStock.builder()
+                                .user(user)
+                                .stock(stock)
+                                .sector(stock.getSector())
+                                .holdingQuantity(0L)
+                                .avgPrice(BigDecimal.ZERO)
+                                .totalValue(BigDecimal.ZERO)
+                                .build()
+                ));
+        userStock.addQuantity(quantity, price);
+        userStockRepository.save(userStock);
+
+        return saved;
     }
 
     /**
      * 주식 매도 처리
      */
     @Transactional
-    public Execution executeSell(Long userId, String stockId, Long quantity, BigDecimal price) {
+    public Execution executeSell(String userId, String stockId, Long quantity, BigDecimal price) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
 
+        // 비즈니스 규칙 검증
+        validateTradingRequest(quantity, price);
+        
         BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
         user.addBalance(totalPrice);
 
@@ -71,41 +98,43 @@ public class TradingService {
                 .user(user)
                 .stock(stock)
                 .sector(stock.getSector())
-                .date(java.time.LocalDate.now())
-                .isBuy(false)
+                .executedAt(LocalDateTime.now())
+                .executionType(Execution.ExecutionType.SELL)
                 .quantity(quantity)
                 .price(price)
                 .totalPrice(totalPrice)
                 .build();
-        return executionRepository.save(execution);
+        Execution saved = executionRepository.save(execution);
+
+        // 보유주식 감소 처리
+        UserStock userStock = userStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
+                .orElseThrow(() -> new RuntimeException("보유하지 않은 종목입니다: " + stockId));
+        userStock.subtractQuantity(quantity);
+        userStockRepository.save(userStock);
+
+        return saved;
     }
 
     /**
-     * 사용자별 거래 내역 조회
+     * 사용자별 거래 내역 조회 
      */
-    public List<Execution> getExecutionsByUserId(Long userId) {
-        return executionRepository.findByUserUserIdOrderByDateDesc(userId);
+    public List<Execution> getExecutionsByUserId(String userId) {
+        return executionRepository.findByUserUserIdOrderByExecutedAtDesc(userId);
     }
 
     /**
-     * 특정 종목 거래 내역 조회
+     * 특정 종목 거래 내역 조회 
      */
-    public List<Execution> getExecutionsByUserIdAndStockId(Long userId, String stockId) {
-        return executionRepository.findByUserUserIdAndStockStockIdOrderByDateDesc(userId, stockId);
+    public List<Execution> getExecutionsByUserIdAndStockId(String userId, String stockId) {
+        return executionRepository.findByUserUserIdAndStockStockIdOrderByExecutedAtDesc(userId, stockId);
     }
 
     /**
-     * 매수/매도별 거래 내역 조회
+     * 매수/매도별 거래 내역 조회 
      */
-    public List<Execution> getExecutionsByUserIdAndIsBuy(Long userId, Boolean isBuy) {
-        return executionRepository.findByUserUserIdAndIsBuyOrderByDateDesc(userId, isBuy);
-    }
-
-    /**
-     * 특정 날짜 거래 내역 조회
-     */
-    public List<Execution> getExecutionsByUserIdAndDate(Long userId, LocalDate date) {
-        return executionRepository.findByUserUserIdAndDateOrderByCreatedAtDesc(userId, date);
+    public List<Execution> getExecutionsByUserIdAndIsBuy(String userId, Boolean isBuy) {
+        return executionRepository.findByUserUserIdAndExecutionTypeOrderByExecutedAtDesc(userId, 
+                isBuy ? Execution.ExecutionType.BUY : Execution.ExecutionType.SELL);
     }
 
     /**
@@ -115,44 +144,28 @@ public class TradingService {
         return executionRepository.findById(executionId);
     }
 
-    /**
-     * 거래 내역 삭제
-     */
-    @Transactional
-    public void deleteExecution(Long executionId) {
-        Execution execution = executionRepository.findById(executionId)
-                .orElseThrow(() -> new RuntimeException("거래 내역을 찾을 수 없습니다: " + executionId));
 
-        executionRepository.delete(execution);
+    // ==================== 비즈니스 규칙 검증 ====================
+
+    /**
+     * 거래 요청 검증
+     */
+    private void validateTradingRequest(Long quantity, BigDecimal price) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
+        }
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("가격은 0보다 커야 합니다.");
+        }
     }
 
     /**
-     * 사용자별 총 거래 금액 조회
+     * 사용자 잔고 검증
      */
-    public BigDecimal getTotalTradingAmount(Long userId) {
-        List<Execution> executions = executionRepository.findByUserUserIdOrderByDateDesc(userId);
-        return executions.stream()
-                .map(Execution::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /**
-     * 사용자별 매수 총액 조회
-     */
-    public BigDecimal getTotalBuyAmount(Long userId) {
-        List<Execution> buyExecutions = executionRepository.findByUserUserIdAndIsBuyOrderByDateDesc(userId, true);
-        return buyExecutions.stream()
-                .map(Execution::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /**
-     * 사용자별 매도 총액 조회
-     */
-    public BigDecimal getTotalSellAmount(Long userId) {
-        List<Execution> sellExecutions = executionRepository.findByUserUserIdAndIsBuyOrderByDateDesc(userId, false);
-        return sellExecutions.stream()
-                .map(Execution::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private void validateUserBalance(User user, BigDecimal price, Long quantity) {
+        BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
+        if (user.getBalance().compareTo(totalPrice) < 0) {
+            throw new IllegalStateException("잔액이 부족합니다. 필요: " + totalPrice + ", 보유: " + user.getBalance());
+        }
     }
 }

@@ -11,8 +11,6 @@ import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 @Repository
 public interface PortfolioStockRepository extends JpaRepository<PortfolioStock, Long> {
     List<PortfolioStock> findByPortfolioPortfolioId(Long portfolioId);
-    List<PortfolioStock> findByStockStockId(String stockId);
-    List<PortfolioStock> findBySectorSectorId(Long sectorId);
     Optional<PortfolioStock> findByPortfolioPortfolioIdAndStockStockId(Long portfolioId, String stockId);
 }
 

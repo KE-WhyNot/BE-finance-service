@@ -10,9 +10,8 @@ import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 
 @Repository
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
-    List<Portfolio> findByUserUserId(Long userId);
-    Optional<Portfolio> findByPortfolioName(String portfolioName);
-    Optional<Portfolio> findByUserUserIdAndPortfolioName(Long userId, String portfolioName);
+    List<Portfolio> findByUserUserId(String userId);
+
 }
 
 

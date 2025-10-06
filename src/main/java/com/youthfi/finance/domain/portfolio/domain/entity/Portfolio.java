@@ -42,34 +42,27 @@ public class Portfolio extends BaseEntity {
     @Column(name = "portfolio_name", nullable = false, length = 100)
     private String portfolioName;
 
-    @Column(name = "allocation_stocks", nullable = false, precision = 5, scale = 2)
-    private BigDecimal allocationStocks;
+    @Column(name = "highest_value", precision = 18, scale = 2)
+    private BigDecimal highestValue;
 
-    @Column(name = "allocation_savings", nullable = false, precision = 5, scale = 2)
-    private BigDecimal allocationSavings;
-
-    @Column(name = "expected_1yr_return", nullable = false, precision = 5, scale = 2)
-    private BigDecimal expected1YrReturn;
+    @Column(name = "lowest_value", precision = 18, scale = 2)
+    private BigDecimal lowestValue;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PortfolioStock> portfolioStocks = new ArrayList<>();
 
     @Builder
-    public Portfolio(User user, String portfolioName, BigDecimal allocationStocks, 
-                   BigDecimal allocationSavings, BigDecimal expected1YrReturn) {
+    public Portfolio(User user, String portfolioName, BigDecimal highestValue, BigDecimal lowestValue) {
         this.user = user;
         this.portfolioName = portfolioName;
-        this.allocationStocks = allocationStocks;
-        this.allocationSavings = allocationSavings;
-        this.expected1YrReturn = expected1YrReturn;
+        this.highestValue = highestValue;
+        this.lowestValue = lowestValue;
     }
 
-    public void updatePortfolio(String portfolioName, BigDecimal allocationStocks, 
-                              BigDecimal allocationSavings, BigDecimal expected1YrReturn) {
+    public void updatePortfolio(String portfolioName, BigDecimal highestValue, BigDecimal lowestValue) {
         this.portfolioName = portfolioName;
-        this.allocationStocks = allocationStocks;
-        this.allocationSavings = allocationSavings;
-        this.expected1YrReturn = expected1YrReturn;
+        this.highestValue = highestValue;
+        this.lowestValue = lowestValue;
     }
 
     public void addStock(PortfolioStock portfolioStock) {

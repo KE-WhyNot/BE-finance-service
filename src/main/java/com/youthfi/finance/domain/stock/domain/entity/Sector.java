@@ -44,7 +44,4 @@ public class Sector extends BaseEntity {
         this.sectorName = sectorName;
     }
 
-    public void updateSectorName(String sectorName) {
-        this.sectorName = sectorName;
-    }
 }

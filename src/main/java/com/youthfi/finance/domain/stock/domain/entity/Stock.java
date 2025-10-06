@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.user.domain.entity.UserStock;
+import com.youthfi.finance.domain.stock.domain.entity.UserStock;
 import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.global.common.BaseEntity;
 
@@ -74,15 +74,4 @@ public class Stock extends BaseEntity {
         this.stockImage = stockImage;
     }
 
-    public void updateStock(String stockName, BigDecimal totalStock, 
-                          String stockOutline, String stockImage) {
-        this.stockName = stockName;
-        this.totalStock = totalStock;
-        this.stockOutline = stockOutline;
-        this.stockImage = stockImage;
-    }
-
-    public void updateSector(Sector sector) {
-        this.sector = sector;
-    }
 }

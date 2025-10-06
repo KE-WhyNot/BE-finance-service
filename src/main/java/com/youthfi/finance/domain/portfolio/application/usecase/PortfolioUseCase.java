@@ -1,79 +1,98 @@
 package com.youthfi.finance.domain.portfolio.application.usecase;
 
+import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
+import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
+import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysis;
+import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
-import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
+import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
+import com.youthfi.finance.domain.portfolio.domain.service.PortfolioRiskService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioService;
+import com.youthfi.finance.domain.portfolio.domain.service.PortfolioStockService;
+import com.youthfi.finance.domain.portfolio.infra.LLMApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PortfolioUseCase {
 
+    private final InvestmentProfileService investmentProfileService;
     private final PortfolioService portfolioService;
-    private final UserRepository userRepository; // 사용자 존재 여부 확인용
+    private final PortfolioStockService portfolioStockService;
+    private final LLMApiClient llmApiClient;
+    private final PortfolioRiskService portfolioRiskCalculator;
+    private final PortfolioMapper portfolioMapper;
 
     @Transactional
-    public Portfolio createMyPortfolio(Long userId, String portfolioName,
-                                     BigDecimal allocationStocks, BigDecimal allocationSavings,
-                                     BigDecimal expected1YrReturn) {
-        BigDecimal totalAllocation = allocationStocks.add(allocationSavings);
-        if (totalAllocation.compareTo(BigDecimal.valueOf(100)) != 0) {
-            throw new IllegalArgumentException("주식과 예금 배분율의 합은 100%여야 합니다.");
+    public Portfolio generatePortfolioRecommendation(String userId) {
+        InvestmentProfile investmentProfile = investmentProfileService.getInvestmentProfileByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("투자성향 정보가 없습니다. 먼저 설문을 완료해주세요."));
+
+        InvestmentProfileResponse profileResponse = portfolioMapper.toInvestmentProfileResponse(investmentProfile);
+        PortfolioResponse recommendation = llmApiClient.requestPortfolioRecommendation(profileResponse);
+
+        PortfolioRiskAnalysis riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
+                recommendation.getRecommendedStocks(),
+                BigDecimal.valueOf(10_000_000)
+        );
+
+        Portfolio portfolio = portfolioService.createPortfolio(
+                userId,
+                "AI 추천 포트폴리오",
+                riskAnalysis.getHighestValue(),
+                riskAnalysis.getLowestValue()
+        );
+
+        for (PortfolioResponse.RecommendedStock stock : recommendation.getRecommendedStocks()) {
+            portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.getStockId(), stock.getAllocationPct());
         }
-        if (expected1YrReturn.compareTo(BigDecimal.valueOf(-100)) < 0) {
-            throw new IllegalArgumentException("예상 수익률은 -100% 이상이어야 합니다.");
-        }
 
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
-
-        return portfolioService.createPortfolio(userId, portfolioName,
-                allocationStocks, allocationSavings, expected1YrReturn);
-    }
-
-    public List<Portfolio> getMyPortfolios(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
-
-        return portfolioService.findPortfoliosByUserId(userId);
-    }
-
-    public Portfolio getMyPortfolio(Long userId, Long portfolioId) {
-        Portfolio portfolio = portfolioService.findPortfolioById(portfolioId)
-                .orElseThrow(() -> new RuntimeException("포트폴리오를 찾을 수 없습니다: " + portfolioId));
-
-        if (!portfolio.getUser().getUserId().equals(userId)) {
-            throw new SecurityException("해당 포트폴리오에 접근할 권한이 없습니다.");
-        }
         return portfolio;
     }
 
-    @Transactional
-    public Portfolio updateMyPortfolio(Long userId, Long portfolioId, String portfolioName,
-                                     BigDecimal allocationStocks, BigDecimal allocationSavings,
-                                     BigDecimal expected1YrReturn) {
-        Portfolio portfolio = getMyPortfolio(userId, portfolioId);
 
-        BigDecimal totalAllocation = allocationStocks.add(allocationSavings);
-        if (totalAllocation.compareTo(BigDecimal.valueOf(100)) != 0) {
-            throw new IllegalArgumentException("주식과 예금 배분율의 합은 100%여야 합니다.");
-        }
-
-        return portfolioService.updatePortfolio(portfolioId, portfolioName,
-                allocationStocks, allocationSavings, expected1YrReturn);
+    public List<Portfolio> getMyPortfolioRecommendations(String userId) {
+        return portfolioService.findPortfoliosByUserId(userId);
     }
 
-    @Transactional
-    public void deleteMyPortfolio(Long userId, Long portfolioId) {
-        getMyPortfolio(userId, portfolioId);
-        portfolioService.deletePortfolio(portfolioId);
+
+    public Portfolio getMyLatestPortfolio(String userId) {
+        List<Portfolio> portfolios = getMyPortfolioRecommendations(userId);
+        if (portfolios.isEmpty()) {
+            throw new RuntimeException("추천 포트폴리오가 없습니다. 먼저 포트폴리오를 생성해주세요.");
+        }
+        return portfolios.stream()
+                .max(java.util.Comparator.comparing(Portfolio::getCreatedAt))
+                .orElseThrow(() -> new RuntimeException("추천 포트폴리오를 찾을 수 없습니다."));
+    }
+
+
+    public boolean canGenerateRecommendation(String userId) {
+        return investmentProfileService.existsInvestmentProfile(userId);
+    }
+
+
+    public List<Map<String, Object>> getPortfolioRecommendationHistory(String userId) {
+        List<Portfolio> portfolios = getMyPortfolioRecommendations(userId);
+        return portfolios.stream()
+                .map(portfolio -> Map.<String, Object>of(
+                        "portfolioId", portfolio.getPortfolioId(),
+                        "portfolioName", portfolio.getPortfolioName(),
+                        "highestValue", portfolio.getHighestValue(),
+                        "lowestValue", portfolio.getLowestValue(),
+                        "createdAt", portfolio.getCreatedAt(),
+                        "stockCount", portfolioStockService.getStockCountByPortfolioId(portfolio.getPortfolioId())
+                ))
+                .toList();
     }
 }
-
 

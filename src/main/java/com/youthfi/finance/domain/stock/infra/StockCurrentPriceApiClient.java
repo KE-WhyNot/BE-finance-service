@@ -1,6 +1,7 @@
 package com.youthfi.finance.domain.stock.infra;
 
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.service.KisTokenService;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -24,12 +25,7 @@ public class StockCurrentPriceApiClient {
         this.kisApiProperties = kisApiProperties;
     }
     
-    /**
-     * 주식현재가 시세 조회
-     * @param marketCode 시장구분코드 (J:KRX, N:NXT, U:N:통합)
-     * @param stockCode 종목코드 (ex: 005930)
-     * @return 주식현재가 시세 데이터
-     */
+    
     public Map<String, Object> getStockCurrentPrice(String marketCode, String stockCode) {
         try {
             // 토큰 발급

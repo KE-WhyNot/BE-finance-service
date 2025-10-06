@@ -4,94 +4,98 @@ import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
 
     /**
-     * 사용자 생성
+     * 사용자 생성 (도메인 로직) - 초기 잔고 1,000만원 고정
      */
-    @Transactional
-    public User createUser(String name, Long seedMoney, String profileImage) {
-        User user = User.builder()
-                .name(name)
-                .seedMoney(BigDecimal.valueOf(seedMoney))
-                .balance(BigDecimal.valueOf(seedMoney)) // 초기 잔고 = 시드머니
-                .profileImage(profileImage)
-                .build();
+    public User createUser(String userId) {
+        // 비즈니스 규칙 검증
+        validateUserCreation(userId);
         
-        return userRepository.save(user);
+        return User.builder()
+                .userId(userId)
+                .balance(new BigDecimal("10000000")) // 초기 잔고 1,000만원 고정
+                .build();
+    }
+
+    /**
+     * 잔고 차감 (매매 시)
+     */
+    public void subtractBalance(User user, BigDecimal amount) {
+        // 비즈니스 규칙 검증
+        validateAmount(amount);
+        validateSufficientBalance(user, amount);
+        
+        user.subtractBalance(amount);
+    }
+
+    /**
+     * 잔고 증가 (매매 시)
+     */
+    public void addBalance(User user, BigDecimal amount) {
+        // 비즈니스 규칙 검증
+        validateAmount(amount);
+        
+        user.addBalance(amount);
     }
 
     /**
      * 사용자 조회 (ID)
      */
-    public Optional<User> getUserById(Long userId) {
+    public Optional<User> getUserById(String userId) {
         return userRepository.findById(userId);
     }
 
-    /**
-     * 사용자 조회 (이름)
-     */
-    public List<User> getUsersByName(String name) {
-        return userRepository.findByNameContaining(name);
-    }
-
-    /**
-     * 모든 사용자 조회
-     */
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    /**
-     * 사용자 정보 수정
-     */
-    @Transactional
-    public User updateUser(Long userId, String name, String profileImage) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
-        
-        user.updateProfile(name, profileImage);
-        return userRepository.save(user);
-    }
-
-    /**
-     * 사용자 삭제
-     */
-    @Transactional
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
-        
-        userRepository.delete(user);
-    }
-
-    /**
-     * 잔고 업데이트
-     */
-    @Transactional
-    public User updateBalance(Long userId, Long newBalance) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
-        
-        user.updateBalance(BigDecimal.valueOf(newBalance));
-        return userRepository.save(user);
-    }
 
     /**
      * 사용자 존재 여부 확인
      */
-    public boolean existsUser(Long userId) {
+    public boolean existsUser(String userId) {
         return userRepository.existsById(userId);
+    }
+
+    // ==================== 비즈니스 규칙 검증 ====================
+
+    /**
+     * 사용자 생성 검증
+     */
+    private void validateUserCreation(String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+        if (userId.length() > 50) {
+            throw new IllegalArgumentException("사용자 ID는 50자를 초과할 수 없습니다.");
+        }
+    }
+
+    /**
+     * 금액 검증
+     */
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("금액은 필수입니다.");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("금액은 0보다 커야 합니다.");
+        }
+    }
+
+    /**
+     * 잔고 충분성 검증
+     */
+    private void validateSufficientBalance(User user, BigDecimal amount) {
+        if (user.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("잔고가 부족합니다. 현재 잔고: " + user.getBalance() + ", 요청 금액: " + amount);
+        }
     }
 }

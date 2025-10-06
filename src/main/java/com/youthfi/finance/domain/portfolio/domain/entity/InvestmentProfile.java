@@ -71,18 +71,6 @@ public class InvestmentProfile extends BaseEntity {
         this.investmentGoal = investmentGoal;
     }
 
-    public void addSector(Sector sector) {
-        InvestmentProfileSector investmentProfileSector = InvestmentProfileSector.builder()
-                .investmentProfile(this)
-                .sector(sector)
-                .build();
-        this.investmentProfileSectors.add(investmentProfileSector);
-    }
-
-    public void removeSector(Sector sector) {
-        this.investmentProfileSectors.removeIf(ips -> ips.getSector().equals(sector));
-    }
-
     public enum InvestmentProfileType {
         HIGH_RISK("고위험"),
         BALANCED("균형"),
@@ -103,8 +91,7 @@ public class InvestmentProfile extends BaseEntity {
         RETIREMENT("노후"),
         EDUCATION("교육"),
         HOUSING("주택"),
-        EMERGENCY("비상금"),
-        GROWTH("성장");
+        EMERGENCY("비상금");
 
         private final String description;
 

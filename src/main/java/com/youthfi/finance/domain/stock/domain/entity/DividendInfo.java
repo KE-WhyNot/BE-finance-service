@@ -1,7 +1,7 @@
 package com.youthfi.finance.domain.stock.domain.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.youthfi.finance.global.common.BaseEntity;
 
@@ -39,7 +39,7 @@ public class DividendInfo extends BaseEntity {
     private Sector sector;
 
     @Column(name = "record_date", nullable = false)
-    private LocalDate recordDate; // 배당기준일
+    private LocalDateTime recordDate; // 배당기준일
 
     @Column(name = "cash_dividend", nullable = false, precision = 15, scale = 2)
     private BigDecimal cashDividend; // 현금배당금
@@ -48,32 +48,9 @@ public class DividendInfo extends BaseEntity {
     private BigDecimal dividendRate; // 현금배당률
 
     @Column(name = "dividend_date", nullable = false)
-    private LocalDate dividendDate; // 배당금지급일
+    private LocalDateTime dividendDate; // 배당금지급일
 
-    @Builder
-    public DividendInfo(Stock stock, Sector sector, LocalDate recordDate, 
-                       BigDecimal cashDividend, BigDecimal dividendRate, LocalDate dividendDate) {
-        this.stock = stock;
-        this.sector = sector;
-        this.recordDate = recordDate;
-        this.cashDividend = cashDividend;
-        this.dividendRate = dividendRate;
-        this.dividendDate = dividendDate;
-    }
 
-    public void updateDividendInfo(LocalDate recordDate, BigDecimal cashDividend, 
-                                 BigDecimal dividendRate, LocalDate dividendDate) {
-        this.recordDate = recordDate;
-        this.cashDividend = cashDividend;
-        this.dividendRate = dividendRate;
-        this.dividendDate = dividendDate;
-    }
 
-    public boolean isDividendPaid() {
-        return LocalDate.now().isAfter(this.dividendDate);
-    }
 
-    public boolean isRecordDatePassed() {
-        return LocalDate.now().isAfter(this.recordDate);
-    }
 }

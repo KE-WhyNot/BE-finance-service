@@ -31,21 +31,11 @@ import lombok.NoArgsConstructor;
 public class User extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long userId;
-
-    @Column(name = "name", nullable = false, length = 50)
-    private String name;
-
-    @Column(name = "seed_money", nullable = false, precision = 15, scale = 2)
-    private BigDecimal seedMoney;
+    @Column(name = "user_id", length = 50)
+    private String userId;
 
     @Column(name = "balance", nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
-
-    @Column(name = "profile_image", length = 500)
-    private String profileImage;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private InvestmentProfile investmentProfile;
@@ -53,8 +43,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Portfolio> portfolios = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserStock> userStocks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Execution> executions = new ArrayList<>();
@@ -63,30 +51,25 @@ public class User extends BaseEntity {
     private List<InterestStock> interestStocks = new ArrayList<>();
 
     @Builder
-    public User(String name, BigDecimal seedMoney, BigDecimal balance, String profileImage) {
-        this.name = name;
-        this.seedMoney = seedMoney;
-        this.balance = balance;
-        this.profileImage = profileImage;
-    }
-
-    public void updateProfile(String name, String profileImage) {
-        this.name = name;
-        this.profileImage = profileImage;
-    }
-
-    public void updateBalance(BigDecimal balance) {
+    public User(String userId, BigDecimal balance) {
+        this.userId = userId;
         this.balance = balance;
     }
 
-    public void addBalance(BigDecimal amount) {
-        this.balance = this.balance.add(amount);
-    }
-
+    /**
+     * 잔고 차감 (매매 시)
+     */
     public void subtractBalance(BigDecimal amount) {
         if (this.balance.compareTo(amount) < 0) {
             throw new IllegalStateException("잔액이 부족합니다.");
         }
         this.balance = this.balance.subtract(amount);
+    }
+
+    /**
+     * 잔고 증가 (매매 시)
+     */
+    public void addBalance(BigDecimal amount) {
+        this.balance = this.balance.add(amount);
     }
 }

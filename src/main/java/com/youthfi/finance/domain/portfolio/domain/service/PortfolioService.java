@@ -13,53 +13,63 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PortfolioService {
 
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public Portfolio createPortfolio(Long userId, String portfolioName,
-                                   BigDecimal allocationStocks, BigDecimal allocationSavings,
-                                   BigDecimal expected1YrReturn) {
+    /**
+     * 새로운 포트폴리오를 생성합니다.
+     * 사용자 존재 여부 확인 후 생성하며,
+     * 포트폴리오 정보는 빌더 패턴으로 구성합니다.
+     */
+
+    public Portfolio createPortfolio(String userId, String portfolioName,
+                                   BigDecimal highestValue, BigDecimal lowestValue) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
 
         Portfolio portfolio = Portfolio.builder()
                 .user(user)
                 .portfolioName(portfolioName)
-                .allocationStocks(allocationStocks)
-                .allocationSavings(allocationSavings)
-                .expected1YrReturn(expected1YrReturn)
+                .highestValue(highestValue)
+                .lowestValue(lowestValue)
                 .build();
         return portfolioRepository.save(portfolio);
     }
+
+    /**
+     * 포트폴리오 ID로 포트폴리오 정보를 조회합니다.
+     */
 
     public Optional<Portfolio> findPortfolioById(Long portfolioId) {
         return portfolioRepository.findById(portfolioId);
     }
 
-    public List<Portfolio> findPortfoliosByUserId(Long userId) {
+    /**
+     * 사용자 ID 기반으로 해당 사용자의 모든 포트폴리오를 조회합니다.
+     */
+
+    public List<Portfolio> findPortfoliosByUserId(String userId) {
         return portfolioRepository.findByUserUserId(userId);
     }
 
-    @Transactional
+    /**
+     * 포트폴리오 정보를 수정합니다.
+     * 포트폴리오 존재 여부 확인 후, 내부 update 메서드로 변경내용 반영합니다.
+     */
+
     public Portfolio updatePortfolio(Long portfolioId, String portfolioName,
-                                   BigDecimal allocationStocks, BigDecimal allocationSavings,
-                                   BigDecimal expected1YrReturn) {
+                                   BigDecimal highestValue, BigDecimal lowestValue) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new RuntimeException("포트폴리오를 찾을 수 없습니다: " + portfolioId));
 
-        portfolio.updatePortfolio(portfolioName, allocationStocks, allocationSavings, expected1YrReturn);
+        portfolio.updatePortfolio(portfolioName, highestValue, lowestValue);
         return portfolio;
     }
 
-    @Transactional
-    public void deletePortfolio(Long portfolioId) {
-        portfolioRepository.deleteById(portfolioId);
-    }
+    
 }
 
 

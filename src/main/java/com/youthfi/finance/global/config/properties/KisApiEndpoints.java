@@ -1,4 +1,4 @@
-package com.youthfi.finance.domain.stock.infra;
+package com.youthfi.finance.global.config.properties;
 
 /**
  * KIS API 엔드포인트 상수 클래스

@@ -1,29 +1,48 @@
-package com.youthfi.finance.domain.stock.application.usecase;
+package com.youthfi.finance.domain.stock.domain.service;
 
-import com.youthfi.finance.domain.stock.infra.StockWebSocketClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.youthfi.finance.domain.stock.domain.entity.Stock;
+import com.youthfi.finance.domain.stock.application.dto.response.StockWebSocketResponse;
+import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.infra.StockWebSocketApprovalKeyManager;
+import com.youthfi.finance.domain.stock.infra.StockWebSocketClient;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.youthfi.finance.global.util.StockFrontendWebSocketHandler;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-public class StockRealtimeUseCase {
+@RequiredArgsConstructor
+public class StockWebSocketService {
+
     private final StockWebSocketApprovalKeyManager approvalKeyManager;
     private final KisApiProperties kisApiProperties;
+    private final StockRepository stockRepository;
     private final List<StockWebSocketClient> clients = new ArrayList<>();
+    private final ObjectMapper objectMapper;
 
-    public StockRealtimeUseCase(StockWebSocketApprovalKeyManager approvalKeyManager, KisApiProperties kisApiProperties) {
-        this.approvalKeyManager = approvalKeyManager;
-        this.kisApiProperties = kisApiProperties;
+    /**
+     * DB에서 모든 종목 조회
+     */
+    public List<String> getAllStockCodes() {
+        List<Stock> stocks = stockRepository.findAllByOrderByStockId();
+        return stocks.stream()
+                .map(Stock::getStockId)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * 모든 키와 종목에 대한 WebSocket 시작
+     */
     public void startWebSocketsForAllKeysAndStocks(List<String> allStocks) {
         // 기존 연결 정리
         stopAllWebSockets();
         
-        // 예시: 2개 appkey, 2개 trId, 21개 종목씩 분배
         List<KisApiProperties.KisKey> keys = kisApiProperties.getKeys();
         String[] trIds = {"H0STASP0", "H0STCNT0"};
         int maxPerSession = 21; // trId 2개면 21종목씩
@@ -43,7 +62,10 @@ public class StockRealtimeUseCase {
                 if (!stocksForThisSession.isEmpty()) {
                     try {
                         URI uri = new URI("ws://ops.koreainvestment.com:21000");
-                        StockWebSocketClient client = new StockWebSocketClient(uri, appkey, approvalKey, trId, stocksForThisSession);
+                        StockWebSocketClient client = new StockWebSocketClient(
+                                uri, appkey, approvalKey, trId, stocksForThisSession,
+                                this::handleIncomingMessage
+                        );
                         client.connect();
                         clients.add(client);
                         
@@ -56,9 +78,18 @@ public class StockRealtimeUseCase {
             }
         }
     }
-    
+
+    private void handleIncomingMessage(StockWebSocketResponse dto) {
+        try {
+            String json = objectMapper.writeValueAsString(dto);
+            StockFrontendWebSocketHandler.broadcast(json);
+        } catch (Exception e) {
+            
+        }
+    }
+
     /**
-     * 모든 WebSocket 연결 종료
+     * 모든 WebSocket 연결 종료 
      */
     public void stopAllWebSockets() {
         for (StockWebSocketClient client : clients) {
@@ -70,9 +101,9 @@ public class StockRealtimeUseCase {
         }
         clients.clear();
     }
-    
+
     /**
-     * WebSocket 연결 상태 확인
+     * WebSocket 연결 상태 확인 
      */
     public int getActiveConnectionCount() {
         return clients.size();

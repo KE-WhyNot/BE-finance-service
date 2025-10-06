@@ -2,7 +2,6 @@ package com.youthfi.finance.domain.portfolio.domain.entity;
 
 import java.math.BigDecimal;
 
-import com.youthfi.finance.domain.stock.domain.entity.Sector;
 import com.youthfi.finance.domain.stock.domain.entity.Stock;
 import com.youthfi.finance.global.common.BaseEntity;
 
@@ -39,18 +38,13 @@ public class PortfolioStock extends BaseEntity {
     @JoinColumn(name = "stock_id", nullable = false)
     private Stock stock;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
-    private Sector sector;
-
     @Column(name = "allocation_pct", nullable = false, precision = 5, scale = 2)
     private BigDecimal allocationPct;
 
     @Builder
-    public PortfolioStock(Portfolio portfolio, Stock stock, Sector sector, BigDecimal allocationPct) {
+    public PortfolioStock(Portfolio portfolio, Stock stock, BigDecimal allocationPct) {
         this.portfolio = portfolio;
         this.stock = stock;
-        this.sector = sector;
         this.allocationPct = allocationPct;
     }
 

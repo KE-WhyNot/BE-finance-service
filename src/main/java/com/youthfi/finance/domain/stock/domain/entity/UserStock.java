@@ -1,9 +1,8 @@
-package com.youthfi.finance.domain.user.domain.entity;
+package com.youthfi.finance.domain.stock.domain.entity;
 
 import java.math.BigDecimal;
 
-import com.youthfi.finance.domain.stock.domain.entity.Stock;
-import com.youthfi.finance.domain.stock.domain.entity.Sector;
+import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -83,7 +82,7 @@ public class UserStock extends BaseEntity {
         
         this.holdingQuantity += quantity; // 보유 주식 수량 증가
         this.avgPrice = currentTotal.add(newTotal).divide(totalQuantity, 2, java.math.RoundingMode.HALF_UP); // 평균 매입가 계산
-        this.totalValue = this.avgPrice.multiply(BigDecimal.valueOf(this.holdingQuantity)); // 총 평가금액 계산  ->>> 근데 이걸 백엔드에 둘 필요가 있나 싶음. 프론트에서 계산하는 게 어떤지?
+        this.totalValue = this.avgPrice.multiply(BigDecimal.valueOf(this.holdingQuantity)); // 총 평가금액 계산
     }
 
     public void subtractQuantity(Long quantity) {

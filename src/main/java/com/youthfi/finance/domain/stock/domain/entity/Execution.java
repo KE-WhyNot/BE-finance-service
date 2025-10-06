@@ -1,7 +1,7 @@
 package com.youthfi.finance.domain.stock.domain.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
@@ -43,11 +43,11 @@ public class Execution extends BaseEntity {
     @JoinColumn(name = "sector_id", nullable = false)
     private Sector sector;
 
-    @Column(name = "date", nullable = false)
-    private LocalDate date; // 거래일
+    @Column(name = "executed_at", nullable = false)
+    private LocalDateTime executedAt; // 거래일시
 
-    @Column(name = "is_buy", nullable = false)
-    private Boolean isBuy; // 매수여부
+    @Column(name = "execution_type", nullable = false)
+    private ExecutionType executionType; // 거래유형
 
     @Column(name = "quantity", nullable = false)
     private Long quantity; // 거래수량
@@ -58,33 +58,22 @@ public class Execution extends BaseEntity {
     @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalPrice; // 거래총액
 
+
     @Builder
-    public Execution(User user, Stock stock, Sector sector, LocalDate date, 
-                   Boolean isBuy, Long quantity, BigDecimal price, BigDecimal totalPrice) {
+    public Execution(User user, Stock stock, Sector sector, LocalDateTime executedAt, 
+    ExecutionType executionType, Long quantity, BigDecimal price, BigDecimal totalPrice) {
         this.user = user;
         this.stock = stock;
         this.sector = sector;
-        this.date = date;
-        this.isBuy = isBuy;
+        this.executedAt = executedAt;
+        this.executionType = executionType;
         this.quantity = quantity;
         this.price = price;
         this.totalPrice = totalPrice;
-    }
+}
+    // ==================== 내부 열거형 ====================
 
-    public void updateExecution(LocalDate date, Boolean isBuy, Long quantity, 
-                              BigDecimal price, BigDecimal totalPrice) {
-        this.date = date;
-        this.isBuy = isBuy;
-        this.quantity = quantity;
-        this.price = price;
-        this.totalPrice = totalPrice;
-    }
-
-    public boolean isBuyOrder() {
-        return this.isBuy;
-    }
-
-    public boolean isSellOrder() {
-        return !this.isBuy;
+    public enum ExecutionType {
+        BUY, SELL
     }
 }

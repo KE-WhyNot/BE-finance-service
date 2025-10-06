@@ -12,11 +12,11 @@ import com.youthfi.finance.domain.stock.domain.entity.InterestStock;
 public interface InterestStockRepository extends JpaRepository<InterestStock, Long> {
     
     // 사용자별 관심종목 조회
-    List<InterestStock> findByUserUserIdAndInterestFlagTrue(Long userId);
+    List<InterestStock> findByUserUserIdAndInterestFlagTrue(String userId);
     
     // 특정 종목 관심 여부
-    Optional<InterestStock> findByUserUserIdAndStockStockId(Long userId, String stockId);
+    Optional<InterestStock> findByUserUserIdAndStockStockId(String userId, String stockId);
     
     // 특정 섹터의 관심종목들
-    List<InterestStock> findByUserUserIdAndSectorSectorIdAndInterestFlagTrue(Long userId, Long sectorId);
+    List<InterestStock> findByUserUserIdAndSectorSectorIdAndInterestFlagTrue(String userId, Long sectorId);
 }

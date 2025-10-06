@@ -1,6 +1,6 @@
 package com.youthfi.finance.domain.stock.domain.repository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +19,11 @@ public interface DividendInfoRepository extends JpaRepository<DividendInfo, Long
     List<DividendInfo> findBySectorSectorId(Long sectorId);
     
     // 특정 종목의 특정 배당정보
-    Optional<DividendInfo> findByStockStockIdAndRecordDate(String stockId, LocalDate recordDate);
+    Optional<DividendInfo> findByStockStockIdAndRecordDate(String stockId, LocalDateTime recordDate);
     
     // 배당기준일로 조회
-    List<DividendInfo> findByRecordDate(LocalDate recordDate);
+    List<DividendInfo> findByRecordDate(LocalDateTime recordDate);
     
     // 배당지급일로 조회
-    List<DividendInfo> findByDividendDate(LocalDate dividendDate);
+    List<DividendInfo> findByDividendDate(LocalDateTime dividendDate);
 }
