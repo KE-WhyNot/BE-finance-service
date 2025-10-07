@@ -8,8 +8,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
-import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysis;
-import com.youthfi.finance.domain.portfolio.application.dto.response.StockPriceInfo;
+import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysisResponse;
+import com.youthfi.finance.domain.portfolio.application.dto.response.StockPriceInfoResponse;
 import com.youthfi.finance.domain.stock.infra.StockCurrentPriceApiClient;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class PortfolioRiskService {
 
     private final StockCurrentPriceApiClient stockCurrentPriceApiClient;
 
-    public PortfolioRiskAnalysis calculatePortfolioRisk(List<PortfolioResponse.RecommendedStock> recommendedStocks, BigDecimal investmentAmount){
+    public PortfolioRiskAnalysisResponse calculatePortfolioRisk(List<PortfolioResponse.RecommendedStock> recommendedStocks, BigDecimal investmentAmount){
         try {
             log.info("포트폴리오 리스크 분석 시작: {}개 종목, 투자금액: {}",
                 recommendedStocks.size(), investmentAmount);
@@ -32,19 +32,19 @@ public class PortfolioRiskService {
             BigDecimal currentValue = BigDecimal.ZERO;
 
             for (PortfolioResponse.RecommendedStock stock : recommendedStocks) {
-                StockPriceInfo priceInfo = getStockPriceInfo(stock.getStockId());
+                StockPriceInfoResponse priceInfo = getStockPriceInfo(stock.stockId());
 
                 BigDecimal stockinvestment = investmentAmount // 종목당 투자 금액
-                        .multiply(stock.getAllocationPct())
+                        .multiply(stock.allocationPct())
                         .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
                 BigDecimal highValue = stockinvestment
-                        .multiply(priceInfo.getW52HighPrice())
-                        .divide(priceInfo.getCurrentPrice(), 2, RoundingMode.HALF_UP);
+                        .multiply(priceInfo.w52HighPrice())
+                        .divide(priceInfo.currentPrice(), 2, RoundingMode.HALF_UP);
 
                 BigDecimal lowValue = stockinvestment
-                        .multiply(priceInfo.getW52LowPrice())
-                        .divide(priceInfo.getCurrentPrice(), 2, RoundingMode.HALF_UP);
+                        .multiply(priceInfo.w52LowPrice())
+                        .divide(priceInfo.currentPrice(), 2, RoundingMode.HALF_UP);
 
                 BigDecimal currentStockValue = stockinvestment; 
 
@@ -57,38 +57,38 @@ public class PortfolioRiskService {
             BigDecimal lowReturn = calculateReturnRate(investmentAmount, totalLowValue);
             BigDecimal currentReturn = calculateReturnRate(investmentAmount, currentValue);
 
-            return PortfolioRiskAnalysis.builder()
-                    .originalInvestment(investmentAmount)
-                    .highestValue(totalHighValue)
-                    .lowestValue(totalLowValue)
-                    .currentValue(currentValue)
-                    .highestReturn(highReturn)
-                    .lowestReturn(lowReturn)
-                    .currentReturn(currentReturn)
-                    .riskLevel(calculateRiskLevel(highReturn, lowReturn))
-                    .build();
+            return new PortfolioRiskAnalysisResponse(
+                    investmentAmount,
+                    totalHighValue,
+                    totalLowValue,
+                    currentValue,
+                    highReturn,
+                    lowReturn,
+                    currentReturn,
+                    calculateRiskLevel(highReturn, lowReturn)
+            );
 
         } catch (Exception e) {
             log.error("포트폴리오 리스크 분석 실패", e);
-            return PortfolioRiskAnalysis.getDefault(investmentAmount);
+            return PortfolioRiskAnalysisResponse.getDefault(investmentAmount);
         }
     }
 
 
-    private StockPriceInfo getStockPriceInfo(String stockId) {
+    private StockPriceInfoResponse getStockPriceInfo(String stockId) {
         try {
             Map<String, Object> response = stockCurrentPriceApiClient.getStockCurrentPrice("J", stockId);
 
-            return StockPriceInfo.builder()
-                    .stockId(stockId)
-                    .currentPrice(new BigDecimal(response.get("stck_prpr").toString()))
-                    .w52HighPrice(new BigDecimal(response.get("w52_hgpr").toString()))
-                    .w52LowPrice(new BigDecimal(response.get("w52_lwpr").toString()))
-                    .build();
+            return new StockPriceInfoResponse(
+                    stockId,
+                    new BigDecimal(response.get("stck_prpr").toString()),
+                    new BigDecimal(response.get("w52_hgpr").toString()),
+                    new BigDecimal(response.get("w52_lwpr").toString())
+            );
 
         } catch (Exception e) {
             log.error("주식 가격 정보 조회 실패", e);
-            return StockPriceInfo.getDefault(stockId);
+            return StockPriceInfoResponse.getDefault(stockId);
         }
     }
 

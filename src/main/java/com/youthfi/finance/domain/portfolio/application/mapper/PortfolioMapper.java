@@ -22,12 +22,13 @@ public class PortfolioMapper {
             return null;
         }
         
-        return PortfolioResponse.builder()
-                .portfolioId(portfolio.getPortfolioId())
-                .userId(portfolio.getUser().getUserId())
-                .createdAt(portfolio.getCreatedAt())
-                .updatedAt(portfolio.getUpdatedAt())
-                .build();
+        return new PortfolioResponse(
+                portfolio.getPortfolioId(),
+                portfolio.getUser().getUserId(),
+                List.of(),
+                portfolio.getCreatedAt(),
+                portfolio.getUpdatedAt()
+        );
     }
 
     /**
@@ -45,15 +46,15 @@ public class PortfolioMapper {
                 .map(ips -> ips.getSector().getSectorName())
                 .collect(Collectors.toList());
         
-        return InvestmentProfileResponse.builder()
-                .profileId(investmentProfile.getProfileId())
-                .userId(investmentProfile.getUser().getUserId())
-                .investmentProfile(investmentProfile.getInvestmentProfile())
-                .availableAssets(investmentProfile.getAvailableAssets())
-                .investmentGoal(investmentProfile.getInvestmentGoal())
-                .createdAt(investmentProfile.getCreatedAt())
-                .updatedAt(investmentProfile.getUpdatedAt())
-                .interestedSectors(interestedSectors)
-                .build();
+        return new InvestmentProfileResponse(
+                investmentProfile.getProfileId(),
+                investmentProfile.getUser().getUserId(),
+                investmentProfile.getInvestmentProfile(),
+                investmentProfile.getAvailableAssets(),
+                investmentProfile.getInvestmentGoal(),
+                interestedSectors,
+                investmentProfile.getCreatedAt(),
+                investmentProfile.getUpdatedAt()
+        );
     }
 }

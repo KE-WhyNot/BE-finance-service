@@ -31,11 +31,11 @@ public class TradingUseCase {
     @Transactional
     public ExecutionResponse buyStock(String userId, BuyStockRequest request) {
         log.info("주식 매수 요청 - 사용자: {}, 종목: {}, 수량: {}, 가격: {}",
-                userId, request.getStockId(), request.getQuantity(), request.getPrice());
+                userId, request.stockId(), request.quantity(), request.price());
         
         // 1. 도메인 서비스를 통한 매수 실행 (비즈니스 규칙 검증 포함)
-        Execution execution = tradingService.executeBuy(userId, request.getStockId(), 
-                request.getQuantity().longValue(), request.getPrice());
+        Execution execution = tradingService.executeBuy(userId, request.stockId(), 
+                request.quantity().longValue(), request.price());
         
         // 2. 응답 DTO 변환
         ExecutionResponse response = stockMapper.toExecutionResponse(execution);
@@ -50,11 +50,11 @@ public class TradingUseCase {
     @Transactional
     public ExecutionResponse sellStock(String userId, SellStockRequest request) {
         log.info("주식 매도 요청 - 사용자: {}, 종목: {}, 수량: {}, 가격: {}", 
-                userId, request.getStockId(), request.getQuantity(), request.getPrice());
+                userId, request.stockId(), request.quantity(), request.price());
         
         // 1. 도메인 서비스를 통한 매도 실행 (비즈니스 규칙 검증 포함)
-        Execution execution = tradingService.executeSell(userId, request.getStockId(), 
-                request.getQuantity().longValue(), request.getPrice());
+        Execution execution = tradingService.executeSell(userId, request.stockId(), 
+                request.quantity().longValue(), request.price());
         
         // 2. 응답 DTO 변환
         ExecutionResponse response = stockMapper.toExecutionResponse(execution);

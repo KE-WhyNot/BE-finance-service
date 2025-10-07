@@ -25,6 +25,13 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                                   FilterChain filterChain) throws ServletException, IOException {
         
         try {
+            Boolean isInternal = (Boolean) request.getAttribute("isInternalRequest");
+            if (isInternal != null && isInternal) {
+                log.debug("내부 요청 확인 완료: {}", request.getRequestURI());
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
             // 1. X-User-Id 헤더에서 사용자 ID 추출
             String userId = request.getHeader("X-User-Id");
             
@@ -65,8 +72,9 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
      * - 빈 문자열이 아닌지 확인
      */
     private boolean isValidUserId(String userId) {
-        return StringUtils.hasText(userId) && userId.matches("^[0-9]+$");
+        return StringUtils.hasText(userId) && userId.matches("^[a-zA-Z0-9_-]+$");
     }
+    
     
     /**
      * 특정 경로는 인증을 건너뛰도록 설정

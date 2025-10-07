@@ -22,11 +22,11 @@ public class StockApiUseCase {
      * 주식현재가 시세 조회 
      */
     public Map<String, Object> getStockCurrentPrice(StockCurrentPriceRequest request) {
-        log.info("주식현재가 시세 조회 요청 - 시장코드: {}, 종목코드: {}", request.getMarketCode(), request.getStockCode());
+        log.info("주식현재가 시세 조회 요청 - 시장코드: {}, 종목코드: {}", request.marketCode(), request.stockCode());
         
-        Map<String, Object> result = stockApiService.getStockCurrentPrice(request.getMarketCode(), request.getStockCode());
+        Map<String, Object> result = stockApiService.getStockCurrentPrice(request.marketCode(), request.stockCode());
         
-        log.info("주식현재가 시세 조회 완료 - 시장코드: {}, 종목코드: {}", request.getMarketCode(), request.getStockCode());
+        log.info("주식현재가 시세 조회 완료 - 시장코드: {}, 종목코드: {}", request.marketCode(), request.stockCode());
         return result;
     }
 
@@ -34,11 +34,11 @@ public class StockApiUseCase {
      * 배당일정 조회
      */
     public Map<String, Object> getDividendSchedule(DividendScheduleRequest request) {
-        log.info("배당일정 조회 요청 - 종목코드: {}", request.getStockCode());
+        log.info("배당일정 조회 요청 - 종목코드: {}", request.stockCode());
         
-        Map<String, Object> result = stockApiService.getDividendSchedule(request.getStockCode());
+        Map<String, Object> result = stockApiService.getDividendSchedule(request.stockCode());
         
-        log.info("배당일정 조회 완료 - 종목코드: {}", request.getStockCode());
+        log.info("배당일정 조회 완료 - 종목코드: {}", request.stockCode());
         return result;
     }
 

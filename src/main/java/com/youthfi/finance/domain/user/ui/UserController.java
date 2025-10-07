@@ -10,14 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * 사용자 관리 컨트롤러
- * - 외부 요청을 받아 DTO로 파싱
- * - UseCase를 호출하여 비즈니스 로직 실행
- * - 응답 결과를 DTO로 변환하여 반환
- * - JWT 인증을 통한 사용자 식별
- * - 비즈니스 로직에는 관여하지 않음
- */
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor

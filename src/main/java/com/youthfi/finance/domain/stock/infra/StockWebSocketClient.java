@@ -70,14 +70,19 @@ public class StockWebSocketClient extends WebSocketClient {
                         List<Integer> askQtys = Arrays.asList(askQty1, askQty2, askQty3, askQty4).stream().map(Integer::parseInt).toList();
                         List<Integer> bidQtys = Arrays.asList(bidQty1, bidQty2, bidQty3, bidQty4).stream().map(Integer::parseInt).toList();
                         String symbol = fields.length > 0 ? fields[0] : "";
-                        StockWebSocketResponse dto = StockWebSocketResponse.builder()
-                                .symbol(symbol)
-                                .askPrices(askPrices)
-                                .bidPrices(bidPrices)
-                                .askQtys(askQtys)
-                                .bidQtys(bidQtys)
-                                .timestamp(LocalDateTime.now().toString())
-                                .build();
+                        StockWebSocketResponse dto = new StockWebSocketResponse(
+                                symbol,
+                                askPrices,
+                                bidPrices,
+                                askQtys,
+                                bidQtys,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                LocalDateTime.now().toString()
+                        );
                         if (messageConsumer != null) {
                             messageConsumer.accept(dto);
                         }
@@ -90,15 +95,19 @@ public class StockWebSocketClient extends WebSocketClient {
                         String stckLwpr = fields.length > 7 ? fields[7] : "0";
                         String stckHgpr = fields.length > 8 ? fields[8] : "0";
                         String symbol = fields.length > 0 ? fields[0] : "";
-                        StockWebSocketResponse dto = StockWebSocketResponse.builder()
-                                .symbol(symbol)
-                                .stckPrpr(Integer.parseInt(stckPrpr))
-                                .prdyVrss(Integer.parseInt(prdyVrss))
-                                .prdyCtrt(Double.parseDouble(prdyCtrt))
-                                .stckLwpr(Integer.parseInt(stckLwpr))
-                                .stckHgpr(Integer.parseInt(stckHgpr))
-                                .timestamp(LocalDateTime.now().toString())
-                                .build();
+                        StockWebSocketResponse dto = new StockWebSocketResponse(
+                                symbol,
+                                null,
+                                null,
+                                null,
+                                null,
+                                Integer.parseInt(stckPrpr),
+                                Integer.parseInt(prdyVrss),
+                                Double.parseDouble(prdyCtrt),
+                                Integer.parseInt(stckLwpr),
+                                Integer.parseInt(stckHgpr),
+                                LocalDateTime.now().toString()
+                        );
                         if (messageConsumer != null) {
                             messageConsumer.accept(dto);
                         }

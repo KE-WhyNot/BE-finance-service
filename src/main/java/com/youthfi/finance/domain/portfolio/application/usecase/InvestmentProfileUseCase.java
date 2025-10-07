@@ -38,18 +38,18 @@ public class InvestmentProfileUseCase {
         if (existingProfile.isPresent()) {
             profile = investmentProfileService.updateInvestmentProfile(
                 existingProfile.get().getProfileId(), 
-                request.getInvestmentProfile(), 
-                request.getAvailableAssets(), 
-                request.getInvestmentGoal(),
-                request.getInterestedSectorNames()
+                request.investmentProfile(), 
+                request.availableAssets(), 
+                request.investmentGoal(),
+                request.interestedSectorNames()
             );
         } else {
             profile = investmentProfileService.createInvestmentProfile(
                 userId, 
-                request.getInvestmentProfile(), 
-                request.getAvailableAssets(), 
-                request.getInvestmentGoal(),
-                request.getInterestedSectorNames()
+                request.investmentProfile(), 
+                request.availableAssets(), 
+                request.investmentGoal(),
+                request.interestedSectorNames()
             );
         }
         return portfolioMapper.toInvestmentProfileResponse(profile);
@@ -78,16 +78,16 @@ public class InvestmentProfileUseCase {
         InvestmentProfile existingProfile = investmentProfileService.getInvestmentProfileByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("투자성향 정보가 없습니다. 먼저 설문을 완료해주세요."));
 
-        if (request.getAvailableAssets().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.availableAssets().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
         }
 
         InvestmentProfile profile = investmentProfileService.updateInvestmentProfile(
             existingProfile.getProfileId(), 
-            request.getInvestmentProfile(), 
-            request.getAvailableAssets(), 
-            request.getInvestmentGoal(),
-            request.getInterestedSectorNames()
+            request.investmentProfile(), 
+            request.availableAssets(), 
+            request.investmentGoal(),
+            request.interestedSectorNames()
         );
         
         return portfolioMapper.toInvestmentProfileResponse(profile);

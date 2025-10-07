@@ -30,7 +30,7 @@ public class LLMApiClient {
 
     public PortfolioResponse requestPortfolioRecommendation(InvestmentProfileResponse investmentProfile) {
         try {
-            log.info("LLM Domain으로 투자성향 프로필 전송 시작: profileId={}", investmentProfile.getProfileId());
+            log.info("LLM Domain으로 투자성향 프로필 전송 시작: profileId={}", investmentProfile.profileId());
             
             // 요청 헤더 설정
             HttpHeaders headers = new HttpHeaders();
@@ -50,17 +50,17 @@ public class LLMApiClient {
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("LLM Domain 응답 성공: profileId={}", investmentProfile.getProfileId());
+                log.info("LLM Domain 응답 성공: profileId={}", investmentProfile.profileId());
                 return response.getBody();
             } else {
                 log.error("LLM Domain 응답 실패: status={}, profileId={}", 
-                         response.getStatusCode(), investmentProfile.getProfileId());
+                         response.getStatusCode(), investmentProfile.profileId());
                 throw new RuntimeException("LLM Domain API 호출 실패: " + response.getStatusCode());
             }
             
         } catch (Exception e) {
             log.error("LLM Domain API 호출 중 오류 발생: profileId={}, error={}", 
-                     investmentProfile.getProfileId(), e.getMessage(), e);
+                     investmentProfile.profileId(), e.getMessage(), e);
             throw new RuntimeException("LLM Domain과의 통신 실패", e);
         }
     }

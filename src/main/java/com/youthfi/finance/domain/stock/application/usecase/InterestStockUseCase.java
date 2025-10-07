@@ -28,11 +28,11 @@ public class InterestStockUseCase {
     @Transactional
     public InterestStockResponse addInterestStock(String userId, InterestStockRequest request) {
 
-        log.info("관심종목 추가 요청 - 사용자: {}, 종목: {}", userId, request.getStockId());
-        InterestStock interestStock = interestStockService.addInterestStock(userId, request.getStockId());
+        log.info("관심종목 추가 요청 - 사용자: {}, 종목: {}", userId, request.stockId());
+        InterestStock interestStock = interestStockService.addInterestStock(userId, request.stockId());
         InterestStockResponse response = stockMapper.toInterestStockResponse(interestStock);
         log.info("관심종목 추가 완료 - 사용자: {}, 종목: {}, 관심종목ID: {}", 
-                userId, request.getStockId(), interestStock.getId());
+                userId, request.stockId(), interestStock.getId());
         return response;
     }
 
@@ -42,9 +42,9 @@ public class InterestStockUseCase {
     @Transactional
     public void removeInterestStock(String userId, InterestStockRequest request) {
 
-        log.info("관심종목 제거 요청 - 사용자: {}, 종목: {}", userId, request.getStockId());
-        interestStockService.removeInterestStock(userId, request.getStockId());
-        log.info("관심종목 제거 완료 - 사용자: {}, 종목: {}", userId, request.getStockId());
+        log.info("관심종목 제거 요청 - 사용자: {}, 종목: {}", userId, request.stockId());
+        interestStockService.removeInterestStock(userId, request.stockId());
+        log.info("관심종목 제거 완료 - 사용자: {}, 종목: {}", userId, request.stockId());
     }
 
     /**
@@ -53,11 +53,11 @@ public class InterestStockUseCase {
     @Transactional
     public InterestStockResponse toggleInterestStock(String userId, InterestStockRequest request) {
 
-        log.info("관심종목 토글 요청 - 사용자: {}, 종목: {}", userId, request.getStockId());
-        InterestStock interestStock = interestStockService.toggleInterestStock(userId, request.getStockId());    
+        log.info("관심종목 토글 요청 - 사용자: {}, 종목: {}", userId, request.stockId());
+        InterestStock interestStock = interestStockService.toggleInterestStock(userId, request.stockId());    
         InterestStockResponse response = stockMapper.toInterestStockResponse(interestStock);      
         log.info("관심종목 토글 완료 - 사용자: {}, 종목: {}, 관심종목ID: {}", 
-                userId, request.getStockId(), interestStock.getId());
+                userId, request.stockId(), interestStock.getId());
         return response;
     }
 

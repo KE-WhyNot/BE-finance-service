@@ -20,17 +20,17 @@ public class StockMapper {
             return null;
         }
         
-        return ExecutionResponse.builder()
-                .executionId(execution.getExecutionId())
-                .userId(execution.getUser().getUserId())
-                .stockId(execution.getStock().getStockId())
-                .stockName(execution.getStock().getStockName())
-                .executionType(execution.getExecutionType().name())
-                .quantity(execution.getQuantity().intValue())
-                .price(execution.getPrice())
-                .totalAmount(execution.getTotalPrice())
-                .executedAt(execution.getExecutedAt())
-                .build();
+        return new ExecutionResponse(
+                execution.getExecutionId(),
+                execution.getUser().getUserId(),
+                execution.getStock().getStockId(),
+                execution.getStock().getStockName(),
+                execution.getExecutionType().name(),
+                execution.getQuantity().intValue(),
+                execution.getPrice(),
+                execution.getTotalPrice(),
+                execution.getExecutedAt()
+        );
     }
 
     /**
@@ -41,14 +41,14 @@ public class StockMapper {
             return null;
         }
         
-        return InterestStockResponse.builder()
-                .interestStockId(interestStock.getId())
-                .userId(interestStock.getUser().getUserId())
-                .stockId(interestStock.getStock().getStockId())
-                .stockName(interestStock.getStock().getStockName())
-                .sectorName(interestStock.getStock().getSector().getSectorName())
-                .createdAt(interestStock.getCreatedAt())
-                .build();
+        return new InterestStockResponse(
+                interestStock.getId(),
+                interestStock.getUser().getUserId(),
+                interestStock.getStock().getStockId(),
+                interestStock.getStock().getStockName(),
+                interestStock.getStock().getSector().getSectorName(),
+                interestStock.getCreatedAt()
+        );
     }
 
 }

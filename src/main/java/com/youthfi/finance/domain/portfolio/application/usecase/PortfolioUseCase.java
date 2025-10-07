@@ -2,7 +2,7 @@ package com.youthfi.finance.domain.portfolio.application.usecase;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
-import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysis;
+import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysisResponse;
 import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
@@ -40,20 +40,20 @@ public class PortfolioUseCase {
         InvestmentProfileResponse profileResponse = portfolioMapper.toInvestmentProfileResponse(investmentProfile);
         PortfolioResponse recommendation = llmApiClient.requestPortfolioRecommendation(profileResponse);
 
-        PortfolioRiskAnalysis riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
-                recommendation.getRecommendedStocks(),
+        PortfolioRiskAnalysisResponse riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
+                recommendation.recommendedStocks(),
                 BigDecimal.valueOf(10_000_000)
         );
 
         Portfolio portfolio = portfolioService.createPortfolio(
                 userId,
                 "AI 추천 포트폴리오",
-                riskAnalysis.getHighestValue(),
-                riskAnalysis.getLowestValue()
+                riskAnalysis.highestValue(),
+                riskAnalysis.lowestValue()
         );
 
-        for (PortfolioResponse.RecommendedStock stock : recommendation.getRecommendedStocks()) {
-            portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.getStockId(), stock.getAllocationPct());
+        for (PortfolioResponse.RecommendedStock stock : recommendation.recommendedStocks()) {
+            portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.stockId(), stock.allocationPct());
         }
 
         return portfolio;

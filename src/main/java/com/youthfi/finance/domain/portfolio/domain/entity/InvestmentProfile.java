@@ -64,6 +64,11 @@ public class InvestmentProfile extends BaseEntity {
         this.investmentGoal = investmentGoal;
     }
 
+    // record 기반 DTO 사용 호환을 위한 접근자 명시
+    public Long getProfileId() {
+        return profileId;
+    }
+
     public void updateProfile(InvestmentProfileType investmentProfile,
                             BigDecimal availableAssets, InvestmentGoal investmentGoal) {
         this.investmentProfile = investmentProfile;

@@ -18,12 +18,12 @@ public class UserMapper {
             return null;
         }
         
-        return UserResponse.builder()
-                .userId(user.getUserId())
-                .balance(user.getBalance())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
+        return new UserResponse(
+                user.getUserId(),
+                user.getBalance(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 
 }

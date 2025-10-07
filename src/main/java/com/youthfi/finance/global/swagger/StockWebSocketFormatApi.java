@@ -22,18 +22,18 @@ public class StockWebSocketFormatApi {
     )
     @GetMapping("/format")
     public StockWebSocketResponse websocketFormatDoc() {
-        return StockWebSocketResponse.builder()
-                .symbol("005930")
-                .askPrices(List.of(84500, 84600, 84700, 84800))
-                .bidPrices(List.of(84400, 84300, 84200, 84100))
-                .askQtys(List.of(100, 200, 150, 180))
-                .bidQtys(List.of(120, 210, 160, 190))
-                .stckPrpr(84500)
-                .prdyVrss(-200)
-                .prdyCtrt(-0.23)
-                .stckLwpr(84000)
-                .stckHgpr(85000)
-                .timestamp("2025-09-24T15:00:00")
-                .build();
+        return new StockWebSocketResponse(
+                "005930",
+                List.of(84500, 84600, 84700, 84800),
+                List.of(84400, 84300, 84200, 84100),
+                List.of(100, 200, 150, 180),
+                List.of(120, 210, 160, 190),
+                84500,
+                -200,
+                -0.23,
+                84000,
+                85000,
+                "2025-09-24T15:00:00"
+        );
     }
 }

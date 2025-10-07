@@ -22,7 +22,7 @@ public class StockWebSocketController implements BaseApi {
     @Operation(summary = "WebSocket 시작", description = "지정된 종목들에 대한 WebSocket 실시간 수신을 시작합니다.")
     @PostMapping("/start")
     public BaseResponse<String> startWebSocket(@Valid @RequestBody WebSocketStartRequest request) {
-        stockWebSocketUseCase.startWebSocketsForAllKeysAndStocks(request.getStockCodes());
+        stockWebSocketUseCase.startWebSocketsForAllKeysAndStocks(request.stockCodes());
         return BaseResponse.onSuccess("OK");
     }
     
@@ -38,10 +38,10 @@ public class StockWebSocketController implements BaseApi {
     public BaseResponse<WebSocketStatusResponse> getWebSocketStatus() {
         int activeConnections = stockWebSocketUseCase.getActiveConnectionCount();
         
-        WebSocketStatusResponse response = WebSocketStatusResponse.builder()
-                .activeConnectionCount(activeConnections)
-                .statusMessage(activeConnections > 0 ? "WebSocket 연결 정상" : "WebSocket 연결 없음")
-                .build();
+        WebSocketStatusResponse response = new WebSocketStatusResponse(
+                activeConnections,
+                activeConnections > 0 ? "WebSocket 연결 정상" : "WebSocket 연결 없음"
+        );
         
         return BaseResponse.onSuccess(response);
     }

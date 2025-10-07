@@ -136,8 +136,8 @@ jobs:
         env:
           IMAGE_REPO: docker.io/${{ secrets.dockerhub_username }}/${{ env.IMAGE_NAME }}
           IMAGE_TAG: ${{ github.sha }}
-          SERVICE_NAME: ${{ env.IMAGE_NAME }}                  # ex) auth-service
-          HELM_VALUES_PATH: k8s/auth-service/helm/values.yaml
+          SERVICE_NAME: ${{ env.IMAGE_NAME }}                 
+          HELM_VALUES_PATH: k8s/finance-service/helm/values.yaml
         run: |
           set -euo pipefail
           cd INFRA

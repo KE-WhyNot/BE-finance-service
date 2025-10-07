@@ -27,14 +27,14 @@ public class UserStockUseCase {
 
         List<UserStock> userStocks = userStockService.getUserStocksByUserId(userId);
         List<UserHoldingResponse> responses = userStocks.stream()
-                .map(us -> UserHoldingResponse.builder()
-                        .userStockId(us.getUserStockId())
-                        .stockId(us.getStock().getStockId())
-                        .stockName(us.getStock().getStockName())
-                        .holdingQuantity(us.getHoldingQuantity())
-                        .avgPrice(us.getAvgPrice())
-                        .createdAt(us.getCreatedAt())
-                        .build())
+                .map(us -> new UserHoldingResponse(
+                        us.getUserStockId(),
+                        us.getStock().getStockId(),
+                        us.getStock().getStockName(),
+                        us.getHoldingQuantity(),
+                        us.getAvgPrice(),
+                        us.getCreatedAt()
+                ))
                 .collect(Collectors.toList());
 
         log.info("보유 주식 목록 조회 완료 - 사용자: {}, 건수: {}", userId, responses.size());
@@ -50,14 +50,14 @@ public class UserStockUseCase {
         UserStock us = userStockService.getUserStockByUserIdAndStockId(userId, stockId)
                 .orElseThrow(() -> new RuntimeException("보유하지 않은 종목입니다: " + stockId));
 
-        UserHoldingResponse response = UserHoldingResponse.builder()
-                .userStockId(us.getUserStockId())
-                .stockId(us.getStock().getStockId())
-                .stockName(us.getStock().getStockName())
-                .holdingQuantity(us.getHoldingQuantity())
-                .avgPrice(us.getAvgPrice())
-                .createdAt(us.getCreatedAt())
-                .build();
+        UserHoldingResponse response = new UserHoldingResponse(
+                us.getUserStockId(),
+                us.getStock().getStockId(),
+                us.getStock().getStockName(),
+                us.getHoldingQuantity(),
+                us.getAvgPrice(),
+                us.getCreatedAt()
+        );
 
         log.info("특정 종목 보유 정보 조회 완료 - 사용자: {}, 종목: {}", userId, stockId);
         return response;
