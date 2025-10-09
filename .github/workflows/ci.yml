@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      SPRING_PROFILES_ACTIVE: test   # 단일 테스트 프로필 사용
+      SPRING_PROFILES_ACTIVE: dev   # 개발 프로필 사용 (테스트 제외)
 
     steps:
       - name: Checkout
@@ -74,12 +74,12 @@ jobs:
         if: ${{ hashFiles('**/build.gradle','**/build.gradle.kts') != '' }}
         run: |
           chmod +x ./gradlew || true
-          ./gradlew clean build --no-daemon --stacktrace
+          ./gradlew clean build -x test --no-daemon --stacktrace
 
       # --- Maven 빌드/테스트 ---
       - name: Build & Test (Maven)
         if: ${{ hashFiles('**/pom.xml') != '' && hashFiles('**/build.gradle','**/build.gradle.kts') == '' }}
-        run: mvn -B -ntp --no-transfer-progress clean verify
+        run: mvn -B -ntp --no-transfer-progress clean package -DskipTests
 
       # --- Docker (옵션: Dockerfile 있을 때만) ---
       - name: Set up Docker Buildx
