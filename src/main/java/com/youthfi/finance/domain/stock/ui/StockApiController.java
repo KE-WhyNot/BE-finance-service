@@ -2,6 +2,7 @@ package com.youthfi.finance.domain.stock.ui;
 
 import com.youthfi.finance.domain.stock.application.dto.request.DividendScheduleRequest;
 import com.youthfi.finance.domain.stock.application.dto.request.StockCurrentPriceRequest;
+import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPriceResponse;
 import com.youthfi.finance.domain.stock.application.usecase.StockApiUseCase;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.swagger.BaseApi;
@@ -23,8 +24,8 @@ public class StockApiController implements BaseApi {
     
     @Operation(summary = "주식현재가 시세 조회", description = "KIS API를 통해 주식현재가 시세를 조회합니다.")
     @PostMapping("/current-price")
-    public BaseResponse<Map<String, Object>> getStockCurrentPrice(@Valid @RequestBody StockCurrentPriceRequest request) {
-        Map<String, Object> result = stockApiUseCase.getStockCurrentPrice(request);
+    public BaseResponse<StockCurrentPriceResponse> getStockCurrentPrice(@Valid @RequestBody StockCurrentPriceRequest request) {
+        StockCurrentPriceResponse result = stockApiUseCase.getStockCurrentPrice(request);
         return BaseResponse.onSuccess(result);
     }
     

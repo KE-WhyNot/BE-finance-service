@@ -52,16 +52,33 @@ public class InvestmentProfile extends BaseEntity {
     @Column(name = "investment_goal", nullable = false, length = 20)
     private InvestmentGoal investmentGoal;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "loss_tolerance", nullable = false, length = 20)
+    private LossTolerance lossTolerance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "financial_knowledge", nullable = false, length = 20)
+    private FinancialKnowledge financialKnowledge;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "expected_profit", nullable = false, length = 20)
+    private ExpectedProfit expectedProfit;
+
     @OneToMany(mappedBy = "investmentProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvestmentProfileSector> investmentProfileSectors = new ArrayList<>();
 
     @Builder
     public InvestmentProfile(User user, InvestmentProfileType investmentProfile,
-                           BigDecimal availableAssets, InvestmentGoal investmentGoal) {
+                           BigDecimal availableAssets, InvestmentGoal investmentGoal,
+                           LossTolerance lossTolerance, FinancialKnowledge financialKnowledge,
+                           ExpectedProfit expectedProfit) {
         this.user = user;
         this.investmentProfile = investmentProfile;
         this.availableAssets = availableAssets;
         this.investmentGoal = investmentGoal;
+        this.lossTolerance = lossTolerance;
+        this.financialKnowledge = financialKnowledge;
+        this.expectedProfit = expectedProfit;
     }
 
     // record 기반 DTO 사용 호환을 위한 접근자 명시
@@ -70,16 +87,23 @@ public class InvestmentProfile extends BaseEntity {
     }
 
     public void updateProfile(InvestmentProfileType investmentProfile,
-                            BigDecimal availableAssets, InvestmentGoal investmentGoal) {
+                            BigDecimal availableAssets, InvestmentGoal investmentGoal,
+                            LossTolerance lossTolerance, FinancialKnowledge financialKnowledge,
+                            ExpectedProfit expectedProfit) {
         this.investmentProfile = investmentProfile;
         this.availableAssets = availableAssets;
         this.investmentGoal = investmentGoal;
+        this.lossTolerance = lossTolerance;
+        this.financialKnowledge = financialKnowledge;
+        this.expectedProfit = expectedProfit;
     }
 
     public enum InvestmentProfileType {
-        HIGH_RISK("고위험"),
-        BALANCED("균형"),
-        CONSERVATIVE("안정");
+        CONSERVATIVE("안정형"),
+        CONSERVATIVE_SEEKING("안정추구형"),
+        RISK_NEUTRAL("위험중립형"),
+        AGGRESSIVE("적극투자형"),
+        VERY_AGGRESSIVE("공격투자형");
 
         private final String description;
 
@@ -93,14 +117,87 @@ public class InvestmentProfile extends BaseEntity {
     }
 
     public enum InvestmentGoal {
-        RETIREMENT("노후"),
-        EDUCATION("교육"),
-        HOUSING("주택"),
-        EMERGENCY("비상금");
+        EDUCATION("학비"),
+        LIVING_EXPENSES("생활비"),
+        HOUSE_PURCHASE("주택마련"),
+        ASSET_GROWTH("자산증식"),
+        DEBT_REPAYMENT("채무상환");
 
         private final String description;
 
         InvestmentGoal(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
+    public enum LossTolerance {
+        NO_LOSS("원금 손실 없음"),
+        TEN_PERCENT("원금의 10%"),
+        THIRTY_PERCENT("원금의 30%"),
+        FIFTY_PERCENT("원금의 50%"),
+        SEVENTY_PERCENT("원금의 70%"),
+        FULL_AMOUNT("원금 전액");
+
+        private final String description;
+
+        LossTolerance(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
+    public enum FinancialKnowledge {
+        VERY_LOW("매우 낮음"),
+        LOW("낮음"),
+        MEDIUM("보통"),
+        HIGH("높음"),
+        VERY_HIGH("매우 높음");
+
+        private final String description;
+
+        FinancialKnowledge(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
+    public enum ExpectedProfit {
+        ONE_FIFTY_PERCENT("150%"),
+        TWO_HUNDRED_PERCENT("200%"),
+        TWO_FIFTY_PERCENT("250%"),
+        THREE_HUNDRED_PERCENT_PLUS("300% 이상");
+
+        private final String description;
+
+        ExpectedProfit(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
+    public enum AvailableAssets {
+        THOUSAND("천원"),
+        TEN_THOUSAND("만원"),
+        HUNDRED_THOUSAND("십만원"),
+        MILLION("백만원"),
+        TEN_MILLION("천만원");
+
+        private final String description;
+
+        AvailableAssets(String description) {
             this.description = description;
         }
 

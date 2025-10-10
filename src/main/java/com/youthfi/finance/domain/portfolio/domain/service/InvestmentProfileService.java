@@ -32,6 +32,9 @@ public class InvestmentProfileService {
                                                    InvestmentProfile.InvestmentProfileType investmentProfile,
                                                    BigDecimal availableAssets, 
                                                    InvestmentProfile.InvestmentGoal investmentGoal,
+                                                   InvestmentProfile.LossTolerance lossTolerance,
+                                                   InvestmentProfile.FinancialKnowledge financialKnowledge,
+                                                   InvestmentProfile.ExpectedProfit expectedProfit,
                                                    List<String> interestedSectorNames) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> PortfolioException.userNotFound(userId));
@@ -43,6 +46,9 @@ public class InvestmentProfileService {
                 .investmentProfile(investmentProfile)
                 .availableAssets(availableAssets)
                 .investmentGoal(investmentGoal)
+                .lossTolerance(lossTolerance)
+                .financialKnowledge(financialKnowledge)
+                .expectedProfit(expectedProfit)
                 .build();
 
         InvestmentProfile savedProfile = investmentProfileRepository.save(profile);
@@ -66,13 +72,17 @@ public class InvestmentProfileService {
                                                    InvestmentProfile.InvestmentProfileType investmentProfile,
                                                    BigDecimal availableAssets, 
                                                    InvestmentProfile.InvestmentGoal investmentGoal,
+                                                   InvestmentProfile.LossTolerance lossTolerance,
+                                                   InvestmentProfile.FinancialKnowledge financialKnowledge,
+                                                   InvestmentProfile.ExpectedProfit expectedProfit,
                                                    List<String> interestedSectorNames) {
         InvestmentProfile profile = investmentProfileRepository.findById(profileId)
                 .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
 
         PortfolioException.validateAvailableAssets(availableAssets);
 
-        profile.updateProfile(investmentProfile, availableAssets, investmentGoal);
+        profile.updateProfile(investmentProfile, availableAssets, investmentGoal, 
+                            lossTolerance, financialKnowledge, expectedProfit);
         InvestmentProfile savedProfile = investmentProfileRepository.save(profile);
         
         // 관심섹터 처리
