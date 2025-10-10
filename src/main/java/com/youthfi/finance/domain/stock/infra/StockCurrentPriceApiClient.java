@@ -3,6 +3,7 @@ package com.youthfi.finance.domain.stock.infra;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
 import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.service.KisTokenService;
+import com.youthfi.finance.global.exception.StockException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -62,17 +63,8 @@ public class StockCurrentPriceApiClient {
             return response.getBody();
             
         } catch (Exception e) {
-            // 로그 출력 및 기본 응답 반환
-            System.err.println("주식현재가 조회 오류: " + e.getMessage());
-            e.printStackTrace();
-            
-            // 기본 응답 반환
-            return Map.of(
-                "error", "KIS API 호출 실패",
-                "message", e.getMessage(),
-                "marketCode", marketCode,
-                "stockCode", stockCode
-            );
+            e.printStackTrace();            
+            throw StockException.kisApiConnectionFailed(e);
         }
     }
 }

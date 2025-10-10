@@ -49,7 +49,8 @@ public class SecurityConfig {
                     "/h2-console/**",
                     "/actuator/**",
                     "/api/stock/token-status",
-                    "/api/stock/current-price"
+                    "/api/stock/current-price",
+                    "/api/stock/chart/**"
                 ).permitAll()
                 
                 // 인증이 필요한 엔드포인트

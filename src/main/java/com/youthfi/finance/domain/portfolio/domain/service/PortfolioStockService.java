@@ -7,6 +7,7 @@ import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioStockRepo
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +33,12 @@ public class PortfolioStockService {
     
     public PortfolioStock addStockToPortfolio(Long portfolioId, String stockId, BigDecimal allocationPct) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
-                .orElseThrow(() -> new RuntimeException("포트폴리오를 찾을 수 없습니다: " + portfolioId));
+                .orElseThrow(() -> PortfolioException.portfolioNotFound(portfolioId));
 
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
+                .orElseThrow(() -> PortfolioException.stockNotFound(stockId));
 
-        if (allocationPct.compareTo(BigDecimal.ZERO) <= 0 || allocationPct.compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new IllegalArgumentException("배분 비율은 0% 초과 100% 이하여야 합니다.");
-        }
+        PortfolioException.validateAllocationPercentage(allocationPct);
 
         PortfolioStock portfolioStock = PortfolioStock.builder()
                 .portfolio(portfolio)

@@ -6,6 +6,7 @@ import com.youthfi.finance.domain.stock.application.dto.response.StockWebSocketR
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.infra.StockWebSocketApprovalKeyManager;
 import com.youthfi.finance.domain.stock.infra.StockWebSocketClient;
+import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class StockWebSocketService {
         stopAllWebSockets();
         
         List<KisApiProperties.KisKey> keys = kisApiProperties.getKeys();
-        String[] trIds = {"H0STASP0", "H0STCNT0"};
+        String[] trIds = {KisApiEndpoints.STOCK_ASKING_PRICE_TR_ID, KisApiEndpoints.STOCK_CONCLUSION_TR_ID};
         int maxPerSession = 21; // trId 2개면 21종목씩
         int idx = 0;
         
@@ -61,7 +62,7 @@ public class StockWebSocketService {
                 
                 if (!stocksForThisSession.isEmpty()) {
                     try {
-                        URI uri = new URI("ws://ops.koreainvestment.com:21000");
+                        URI uri = new URI(KisApiEndpoints.WEBSOCKET_URL);
                         StockWebSocketClient client = new StockWebSocketClient(
                                 uri, appkey, approvalKey, trId, stocksForThisSession,
                                 this::handleIncomingMessage

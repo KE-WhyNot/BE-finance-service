@@ -9,6 +9,7 @@ import com.youthfi.finance.domain.stock.domain.entity.InterestStock;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.global.common.BaseEntity;
+import com.youthfi.finance.global.exception.UserException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -60,9 +61,7 @@ public class User extends BaseEntity {
      * 잔고 차감 (매매 시)
      */
     public void subtractBalance(BigDecimal amount) {
-        if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalStateException("잔액이 부족합니다.");
-        }
+        UserException.validateSufficientBalance(this.balance, amount);
         this.balance = this.balance.subtract(amount);
     }
 

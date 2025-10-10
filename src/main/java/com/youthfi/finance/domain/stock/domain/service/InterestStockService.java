@@ -8,6 +8,7 @@ import com.youthfi.finance.domain.stock.domain.repository.InterestStockRepositor
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,9 +31,9 @@ public class InterestStockService {
      */
     public InterestStock addInterestStock(String userId, String stockId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> StockException.userNotFound(userId));
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
+                .orElseThrow(() -> StockException.stockNotFound(stockId));
         Sector sector = stock.getSector();
 
         return interestStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
@@ -49,7 +50,7 @@ public class InterestStockService {
      */
     public void removeInterestStock(String userId, String stockId) {
         InterestStock interestStock = interestStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
-                .orElseThrow(() -> new RuntimeException("관심종목을 찾을 수 없습니다: " + stockId));
+                .orElseThrow(() -> StockException.interestStockNotFound());
         interestStock.setInterest(false);
         interestStockRepository.save(interestStock);
     }

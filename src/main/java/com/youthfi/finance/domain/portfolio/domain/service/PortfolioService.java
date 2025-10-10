@@ -4,6 +4,7 @@ import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,7 @@ public class PortfolioService {
     public Portfolio createPortfolio(String userId, String portfolioName,
                                    BigDecimal highestValue, BigDecimal lowestValue) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> PortfolioException.userNotFound(userId));
 
         Portfolio portfolio = Portfolio.builder()
                 .user(user)
@@ -63,7 +64,7 @@ public class PortfolioService {
     public Portfolio updatePortfolio(Long portfolioId, String portfolioName,
                                    BigDecimal highestValue, BigDecimal lowestValue) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
-                .orElseThrow(() -> new RuntimeException("포트폴리오를 찾을 수 없습니다: " + portfolioId));
+                .orElseThrow(() -> PortfolioException.portfolioNotFound(portfolioId));
 
         portfolio.updatePortfolio(portfolioName, highestValue, lowestValue);
         return portfolio;

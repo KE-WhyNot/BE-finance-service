@@ -5,6 +5,7 @@ import com.youthfi.finance.domain.user.application.mapper.UserMapper;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
 import com.youthfi.finance.domain.user.domain.service.UserService;
+import com.youthfi.finance.global.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class UserUseCase {
     public UserResponse getMyBalance(String userId) {
 
         User user = userService.getUserById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> UserException.userNotFound(userId));
         return userMapper.toUserResponse(user);
     }
 

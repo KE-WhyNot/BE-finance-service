@@ -2,6 +2,7 @@ package com.youthfi.finance.domain.portfolio.infra;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,13 +56,14 @@ public class LLMApiClient {
             } else {
                 log.error("LLM Domain 응답 실패: status={}, profileId={}", 
                          response.getStatusCode(), investmentProfile.profileId());
-                throw new RuntimeException("LLM Domain API 호출 실패: " + response.getStatusCode());
+                throw PortfolioException.llmApiConnectionFailed(
+                    new RuntimeException("LLM Domain API 호출 실패: " + response.getStatusCode()));
             }
             
         } catch (Exception e) {
             log.error("LLM Domain API 호출 중 오류 발생: profileId={}, error={}", 
                      investmentProfile.profileId(), e.getMessage(), e);
-            throw new RuntimeException("LLM Domain과의 통신 실패", e);
+            throw PortfolioException.llmApiConnectionFailed(e);
         }
     }
 

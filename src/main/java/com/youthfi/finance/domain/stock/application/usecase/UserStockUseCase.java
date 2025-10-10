@@ -3,6 +3,7 @@ package com.youthfi.finance.domain.stock.application.usecase;
 import com.youthfi.finance.domain.stock.application.dto.response.UserHoldingResponse;
 import com.youthfi.finance.domain.stock.domain.entity.UserStock;
 import com.youthfi.finance.domain.stock.domain.service.UserStockService;
+import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class UserStockUseCase {
         log.info("특정 종목 보유 정보 조회 요청 - 사용자: {}, 종목: {}", userId, stockId);
 
         UserStock us = userStockService.getUserStockByUserIdAndStockId(userId, stockId)
-                .orElseThrow(() -> new RuntimeException("보유하지 않은 종목입니다: " + stockId));
+                .orElseThrow(() -> StockException.userStockNotFound());
 
         UserHoldingResponse response = new UserHoldingResponse(
                 us.getUserStockId(),

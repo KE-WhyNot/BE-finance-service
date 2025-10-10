@@ -4,11 +4,14 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import com.youthfi.finance.domain.stock.application.dto.response.StockWebSocketResponse;
+import com.youthfi.finance.global.exception.StockException;
+import lombok.extern.slf4j.Slf4j;
 import java.util.function.Consumer;
 import java.util.Arrays;
 import java.util.List;
 import java.time.LocalDateTime;
 
+@Slf4j
 public class StockWebSocketClient extends WebSocketClient {
     private final String appkey;
     private final String approvalKey;
@@ -27,7 +30,7 @@ public class StockWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        System.out.println("WebSocket 연결 성공! (appkey=" + appkey + ", trId=" + trId + ")");
+        log.info("WebSocket 연결 성공! (appkey={}, trId={})", appkey, trId);
         for (String trKey : trKeys) {
             String subscribeMsg = String.format(
                 "{\"header\":{\"approval_key\":\"%s\",\"custtype\":\"P\",\"tr_type\":\"1\",\"content-type\":\"utf-8\"},\"body\":{\"input\":{\"tr_id\":\"%s\",\"tr_key\":\"%s\"}}}",
@@ -115,20 +118,22 @@ public class StockWebSocketClient extends WebSocketClient {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("실시간 데이터 수신(파싱실패): " + message);
+                log.error("실시간 데이터 수신(파싱실패): {}", message, e);
+                throw StockException.kisApiResponseError(e);
             }
         } else {
-            System.out.println("실시간 데이터 수신: " + message);
+            log.debug("실시간 데이터 수신: {}", message);
         }
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("WebSocket 연결 종료: " + reason);
+        log.info("WebSocket 연결 종료: {} (code={}, remote={})", reason, code, remote);
     }
 
     @Override
     public void onError(Exception ex) {
-        ex.printStackTrace();
+        log.error("WebSocket 연결 오류 발생", ex);
+        throw StockException.websocketConnectionFailed(ex);
     }
 }

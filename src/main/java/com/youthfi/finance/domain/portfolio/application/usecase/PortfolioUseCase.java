@@ -12,6 +12,7 @@ import com.youthfi.finance.domain.portfolio.domain.service.PortfolioRiskService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioStockService;
 import com.youthfi.finance.domain.portfolio.infra.LLMApiClient;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +36,7 @@ public class PortfolioUseCase {
     @Transactional
     public Portfolio generatePortfolioRecommendation(String userId) {
         InvestmentProfile investmentProfile = investmentProfileService.getInvestmentProfileByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("투자성향 정보가 없습니다. 먼저 설문을 완료해주세요."));
+                .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
 
         InvestmentProfileResponse profileResponse = portfolioMapper.toInvestmentProfileResponse(investmentProfile);
         PortfolioResponse recommendation = llmApiClient.requestPortfolioRecommendation(profileResponse);
@@ -67,12 +68,10 @@ public class PortfolioUseCase {
 
     public Portfolio getMyLatestPortfolio(String userId) {
         List<Portfolio> portfolios = getMyPortfolioRecommendations(userId);
-        if (portfolios.isEmpty()) {
-            throw new RuntimeException("추천 포트폴리오가 없습니다. 먼저 포트폴리오를 생성해주세요.");
-        }
+        PortfolioException.validatePortfolioExists(portfolios.isEmpty() ? null : portfolios.get(0), null);
         return portfolios.stream()
                 .max(java.util.Comparator.comparing(Portfolio::getCreatedAt))
-                .orElseThrow(() -> new RuntimeException("추천 포트폴리오를 찾을 수 없습니다."));
+                .orElseThrow(() -> PortfolioException.portfolioNotFound(null));
     }
 
 

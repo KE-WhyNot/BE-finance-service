@@ -10,6 +10,7 @@ import com.youthfi.finance.domain.stock.domain.repository.ExecutionRepository;
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +37,9 @@ public class TradingService {
     @Transactional
     public Execution executeBuy(String userId, String stockId, Long quantity, BigDecimal price) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> StockException.userNotFound(userId));
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
+                .orElseThrow(() -> StockException.stockNotFound(stockId));
 
         // 비즈니스 규칙 검증
         validateTradingRequest(quantity, price);
@@ -84,9 +85,9 @@ public class TradingService {
     @Transactional
     public Execution executeSell(String userId, String stockId, Long quantity, BigDecimal price) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> StockException.userNotFound(userId));
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new RuntimeException("종목을 찾을 수 없습니다: " + stockId));
+                .orElseThrow(() -> StockException.stockNotFound(stockId));
 
         // 비즈니스 규칙 검증
         validateTradingRequest(quantity, price);
@@ -108,7 +109,7 @@ public class TradingService {
 
         // 보유주식 감소 처리
         UserStock userStock = userStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
-                .orElseThrow(() -> new RuntimeException("보유하지 않은 종목입니다: " + stockId));
+                .orElseThrow(() -> StockException.userStockNotFound());
         userStock.subtractQuantity(quantity);
         userStockRepository.save(userStock);
 
@@ -151,12 +152,8 @@ public class TradingService {
      * 거래 요청 검증
      */
     private void validateTradingRequest(Long quantity, BigDecimal price) {
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
-        }
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("가격은 0보다 커야 합니다.");
-        }
+        StockException.validateQuantity(quantity);
+        StockException.validatePrice(price.longValue());
     }
 
     /**
@@ -164,8 +161,6 @@ public class TradingService {
      */
     private void validateUserBalance(User user, BigDecimal price, Long quantity) {
         BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
-        if (user.getBalance().compareTo(totalPrice) < 0) {
-            throw new IllegalStateException("잔액이 부족합니다. 필요: " + totalPrice + ", 보유: " + user.getBalance());
-        }
+        StockException.validateSufficientBalance(user.getBalance(), totalPrice);
     }
 }

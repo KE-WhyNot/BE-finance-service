@@ -1,6 +1,8 @@
 package com.youthfi.finance.domain.stock.infra;
 
+import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import com.youthfi.finance.global.exception.StockException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -20,7 +22,7 @@ public class StockWebSocketApprovalKeyManager {
 
     public synchronized String getApprovalKey(String appkey, String appsecret) {
         if (!approvalKeyMap.containsKey(appkey)) {
-            String url = "https://openapi.koreainvestment.com:9443/oauth2/Approval";
+            String url = KisApiEndpoints.REAL_BASE_URL + KisApiEndpoints.WEBSOCKET_APPROVAL;
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -37,10 +39,10 @@ public class StockWebSocketApprovalKeyManager {
                 if (approvalKey != null) {
                     approvalKeyMap.put(appkey, approvalKey.toString());
                 } else {
-                    throw new RuntimeException("approval_key not found in response");
+                    throw StockException.kisApiResponseError(new RuntimeException("approval_key not found in response"));
                 }
             } else {
-                throw new RuntimeException("WebSocket approval key 발급 실패: " + response.getStatusCode());
+                throw StockException.kisApiConnectionFailed(new RuntimeException("WebSocket approval key 발급 실패: " + response.getStatusCode()));
             }
         }
         return approvalKeyMap.get(appkey);

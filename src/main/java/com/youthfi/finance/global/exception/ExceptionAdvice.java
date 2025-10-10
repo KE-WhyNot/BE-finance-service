@@ -49,6 +49,39 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     }
 
     /*
+     * Portfolio 관련 예외 처리
+     */
+    @ExceptionHandler(value = PortfolioException.class)
+    public ResponseEntity<BaseResponse<String>> handlePortfolioException(PortfolioException e) {
+        log.warn("[handlePortfolioException] code={} message={}",
+                e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+        BaseCode errorCode = e.getErrorCode();
+        return handleExceptionInternal(errorCode);
+    }
+
+    /*
+     * Stock 관련 예외 처리
+     */
+    @ExceptionHandler(value = StockException.class)
+    public ResponseEntity<BaseResponse<String>> handleStockException(StockException e) {
+        log.warn("[handleStockException] code={} message={}",
+                e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+        BaseCode errorCode = e.getErrorCode();
+        return handleExceptionInternal(errorCode);
+    }
+
+    /*
+     * User 관련 예외 처리
+     */
+    @ExceptionHandler(value = UserException.class)
+    public ResponseEntity<BaseResponse<String>> handleUserException(UserException e) {
+        log.warn("[handleUserException] code={} message={}",
+                e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+        BaseCode errorCode = e.getErrorCode();
+        return handleExceptionInternal(errorCode);
+    }
+
+    /*
      * DataIntegrityViolationException 발생 시 예외 처리
      * 데이터베이스 제약조건 위반 시 발생
      */

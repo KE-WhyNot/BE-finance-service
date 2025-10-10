@@ -2,6 +2,7 @@ package com.youthfi.finance.domain.user.domain.service;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,6 @@ public class UserService {
         // 비즈니스 규칙 검증
         validateAmount(amount);
         validateSufficientBalance(user, amount);
-        
         user.subtractBalance(amount);
     }
 
@@ -45,7 +45,6 @@ public class UserService {
     public void addBalance(User user, BigDecimal amount) {
         // 비즈니스 규칙 검증
         validateAmount(amount);
-        
         user.addBalance(amount);
     }
 
@@ -64,38 +63,24 @@ public class UserService {
         return userRepository.existsById(userId);
     }
 
-    // ==================== 비즈니스 규칙 검증 ====================
-
     /**
      * 사용자 생성 검증
      */
     private void validateUserCreation(String userId) {
-        if (userId == null || userId.trim().isEmpty()) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
-        }
-        if (userId.length() > 50) {
-            throw new IllegalArgumentException("사용자 ID는 50자를 초과할 수 없습니다.");
-        }
+        UserException.validateUserId(userId);
     }
 
     /**
      * 금액 검증
      */
     private void validateAmount(BigDecimal amount) {
-        if (amount == null) {
-            throw new IllegalArgumentException("금액은 필수입니다.");
-        }
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("금액은 0보다 커야 합니다.");
-        }
+        UserException.validateAmount(amount);
     }
 
     /**
      * 잔고 충분성 검증
      */
     private void validateSufficientBalance(User user, BigDecimal amount) {
-        if (user.getBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("잔고가 부족합니다. 현재 잔고: " + user.getBalance() + ", 요청 금액: " + amount);
-        }
+        UserException.validateSufficientBalance(user.getBalance(), amount);
     }
 }

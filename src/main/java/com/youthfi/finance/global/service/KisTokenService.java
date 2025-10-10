@@ -1,6 +1,10 @@
 package com.youthfi.finance.global.service;
 
+import com.youthfi.finance.global.config.RedisConstants;
+import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
+import com.youthfi.finance.global.exception.StockException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -11,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class KisTokenService {
     private final KisApiProperties kisApiProperties;
@@ -19,9 +24,6 @@ public class KisTokenService {
 
 
     
-    // Redis 키 패턴
-    private static final String TOKEN_KEY_PREFIX = "kis:token:";
-    private static final String EXPIRY_KEY_PREFIX = "kis:expiry:";
 
 
 
@@ -34,19 +36,19 @@ public class KisTokenService {
 
     
     public synchronized String getValidToken(String appkey, String appsecret) {
-        String tokenKey = TOKEN_KEY_PREFIX + appkey;
+        String tokenKey = RedisConstants.buildKisTokenKey(appkey);
         String token = redisTemplate.opsForValue().get(tokenKey);
         
         if (token == null) {
-            System.out.println("새로운 토큰 발급: " + appkey);
+            log.info("새로운 토큰 발급: {}", appkey);
             fetchToken(appkey, appsecret);
             token = redisTemplate.opsForValue().get(tokenKey);
         } else if (isTokenExpiringSoon(appkey)) {
-            System.out.println("토큰 갱신: " + appkey + " (만료 1시간 전)");
+            log.info("토큰 갱신: {} (만료 1시간 전)", appkey);
             fetchToken(appkey, appsecret);
             token = redisTemplate.opsForValue().get(tokenKey);
         } else {
-            System.out.println("기존 토큰 재사용: " + appkey);
+            log.debug("기존 토큰 재사용: {}", appkey);
         }
         return token;
     }
@@ -54,7 +56,7 @@ public class KisTokenService {
 
 
     public synchronized void fetchToken(String appkey, String appsecret) {
-        String url = "https://openapi.koreainvestment.com:9443/oauth2/tokenP";
+        String url = KisApiEndpoints.REAL_BASE_URL + KisApiEndpoints.TOKEN_ISSUANCE;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -74,20 +76,20 @@ public class KisTokenService {
             LocalDateTime expiredAt = LocalDateTime.parse(expiredAtStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             
             // Redis에 토큰과 만료시간 저장 (24시간 TTL)
-            String tokenKey = TOKEN_KEY_PREFIX + appkey;
-            String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+            String tokenKey = RedisConstants.buildKisTokenKey(appkey);
+            String expiryKey = RedisConstants.buildKisExpiryKey(appkey);
             
             redisTemplate.opsForValue().set(tokenKey, token, Duration.ofHours(24));
             redisTemplate.opsForValue().set(expiryKey, expiredAt.toString(), Duration.ofHours(24));
         } else {
-            throw new RuntimeException("토큰 발급 실패: " + response.getStatusCode());
+            throw StockException.kisApiConnectionFailed(new RuntimeException("토큰 발급 실패: " + response.getStatusCode()));
         }
     }
 
 
 
     public boolean isTokenExpiringSoon(String appkey) {
-        String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+        String expiryKey = RedisConstants.buildKisExpiryKey(appkey);
         String expiryStr = redisTemplate.opsForValue().get(expiryKey);
         
         if (expiryStr == null) {
@@ -110,8 +112,8 @@ public class KisTokenService {
      */
     public Map<String, Object> getTokenStatus(String appkey) {
         Map<String, Object> status = new HashMap<>();
-        String tokenKey = TOKEN_KEY_PREFIX + appkey;
-        String expiryKey = EXPIRY_KEY_PREFIX + appkey;
+        String tokenKey = RedisConstants.buildKisTokenKey(appkey);
+        String expiryKey = RedisConstants.buildKisExpiryKey(appkey);
         
         String token = redisTemplate.opsForValue().get(tokenKey);
         String expiryStr = redisTemplate.opsForValue().get(expiryKey);
@@ -131,12 +133,12 @@ public class KisTokenService {
         Map<String, Map<String, Object>> allStatus = new HashMap<>();
         
         // Redis에서 모든 토큰 키 조회
-        String pattern = TOKEN_KEY_PREFIX + "*";
+        String pattern = RedisConstants.KIS_TOKEN_PREFIX + "*";
         var keys = redisTemplate.keys(pattern);
         
         if (keys != null) {
             for (String key : keys) {
-                String appkey = key.substring(TOKEN_KEY_PREFIX.length());
+                String appkey = key.substring(RedisConstants.KIS_TOKEN_PREFIX.length());
                 allStatus.put(appkey, getTokenStatus(appkey));
             }
         }

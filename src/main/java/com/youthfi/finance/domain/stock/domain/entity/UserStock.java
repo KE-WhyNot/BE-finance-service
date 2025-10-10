@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
+import com.youthfi.finance.global.exception.StockException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -86,11 +87,9 @@ public class UserStock extends BaseEntity {
     }
 
     public void subtractQuantity(Long quantity) {
-        if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("감소할 수량은 0보다 커야 합니다.");
-        }
+        StockException.validateQuantity(quantity);
         if (quantity > this.holdingQuantity) {
-            throw new IllegalStateException("보유한 주식 수량이 부족합니다.");
+            throw StockException.insufficientStockQuantity(this.stock.getStockId(), quantity, this.holdingQuantity);
         }
         this.holdingQuantity -= quantity;
         this.totalValue = this.avgPrice.multiply(BigDecimal.valueOf(this.holdingQuantity));

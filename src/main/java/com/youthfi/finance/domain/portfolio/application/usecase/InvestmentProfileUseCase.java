@@ -8,6 +8,7 @@ import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +62,7 @@ public class InvestmentProfileUseCase {
 
     public InvestmentProfileResponse getMyInvestmentProfile(String userId) {
         InvestmentProfile profile = investmentProfileService.getInvestmentProfileByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("투자성향 정보가 없습니다. 먼저 설문을 완료해주세요."));
+                .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
         
         return portfolioMapper.toInvestmentProfileResponse(profile);
     }
@@ -73,14 +74,12 @@ public class InvestmentProfileUseCase {
     @Transactional
     public InvestmentProfileResponse updateMyInvestmentProfile(String userId, UpdateInvestmentProfileRequest request) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> PortfolioException.userNotFound(userId));
 
         InvestmentProfile existingProfile = investmentProfileService.getInvestmentProfileByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("투자성향 정보가 없습니다. 먼저 설문을 완료해주세요."));
+                .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
 
-        if (request.availableAssets().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
-        }
+        PortfolioException.validateAvailableAssets(request.availableAssets());
 
         InvestmentProfile profile = investmentProfileService.updateInvestmentProfile(
             existingProfile.getProfileId(), 

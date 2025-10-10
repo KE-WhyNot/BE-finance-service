@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.youthfi.finance.global.exception.UserException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -46,21 +47,15 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("X-User-Id 인증 성공: {}", userId);
                 } else {
                     log.warn("유효하지 않은 사용자 ID 형식: {}", userId);
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-                    response.getWriter().write("{\"error\":\"유효하지 않은 사용자 ID 형식입니다.\"}");
-                    return;
+                    UserException.validateUserId(userId); // 예외 발생
                 }
             } else {
                 log.warn("X-User-Id 헤더가 없습니다. 요청 URI: {}", request.getRequestURI());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-                response.getWriter().write("{\"error\":\"X-User-Id 헤더가 필요합니다.\"}");
-                return;
+                throw UserException.invalidUserId("X-User-Id 헤더가 필요합니다.");
             }
         } catch (Exception e) {
             log.error("X-User-Id 인증 처리 중 오류 발생: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
-            response.getWriter().write("{\"error\":\"인증 처리 중 오류가 발생했습니다.\"}");
-            return;
+            throw new RuntimeException("인증 처리 중 오류가 발생했습니다.", e);
         }
         
         filterChain.doFilter(request, response);

@@ -5,6 +5,7 @@ import com.youthfi.finance.domain.stock.application.dto.response.InterestStockRe
 import com.youthfi.finance.domain.stock.domain.entity.Execution;
 import com.youthfi.finance.domain.stock.domain.entity.InterestStock;
 import com.youthfi.finance.domain.stock.domain.entity.UserStock;
+import com.youthfi.finance.global.exception.StockException;
 import org.springframework.stereotype.Component;
 
  
@@ -16,9 +17,7 @@ public class StockMapper {
      * Execution 엔터티를 ExecutionResponse DTO로 변환
      */
     public ExecutionResponse toExecutionResponse(Execution execution) {
-        if (execution == null) {
-            return null;
-        }
+        StockException.validateExecutionExists(execution);
         
         return new ExecutionResponse(
                 execution.getExecutionId(),
@@ -37,9 +36,7 @@ public class StockMapper {
      * InterestStock 엔터티를 InterestStockResponse DTO로 변환
      */
     public InterestStockResponse toInterestStockResponse(InterestStock interestStock) {
-        if (interestStock == null) {
-            return null;
-        }
+        StockException.validateInterestStockExists(interestStock);
         
         return new InterestStockResponse(
                 interestStock.getId(),

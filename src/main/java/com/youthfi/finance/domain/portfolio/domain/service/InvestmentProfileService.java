@@ -8,6 +8,7 @@ import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileR
 import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileSectorRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +34,9 @@ public class InvestmentProfileService {
                                                    InvestmentProfile.InvestmentGoal investmentGoal,
                                                    List<String> interestedSectorNames) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> PortfolioException.userNotFound(userId));
 
-        if (availableAssets.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
-        }
+        PortfolioException.validateAvailableAssets(availableAssets);
         
         InvestmentProfile profile = InvestmentProfile.builder()
                 .user(user)
@@ -69,11 +68,9 @@ public class InvestmentProfileService {
                                                    InvestmentProfile.InvestmentGoal investmentGoal,
                                                    List<String> interestedSectorNames) {
         InvestmentProfile profile = investmentProfileRepository.findById(profileId)
-                .orElseThrow(() -> new RuntimeException("투자성향을 찾을 수 없습니다: " + profileId));
+                .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
 
-        if (availableAssets.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("투자가능자산은 0보다 커야 합니다.");
-        }
+        PortfolioException.validateAvailableAssets(availableAssets);
 
         profile.updateProfile(investmentProfile, availableAssets, investmentGoal);
         InvestmentProfile savedProfile = investmentProfileRepository.save(profile);
@@ -107,7 +104,7 @@ public class InvestmentProfileService {
         // 새로운 관심섹터 추가
         for (String sectorName : sectorNames) {
             Sector sector = sectorRepository.findBySectorName(sectorName)
-                    .orElseThrow(() -> new RuntimeException("섹터를 찾을 수 없습니다: " + sectorName));
+                    .orElseThrow(() -> PortfolioException.sectorNotFound(sectorName));
 
             InvestmentProfileSector investmentProfileSector = InvestmentProfileSector.builder()
                     .investmentProfile(investmentProfile)
