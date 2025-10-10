@@ -112,6 +112,16 @@ public class StockException extends RestApiException {
             "KIS API 응답 처리 중 오류가 발생했습니다.", cause);
     }
 
+    public static StockException currentPriceNotAvailable(String stockId) {
+        return new StockException(StockErrorStatus.CURRENT_PRICE_NOT_AVAILABLE, 
+            "현재가 정보를 가져올 수 없습니다: " + stockId);
+    }
+
+    public static StockException currentPriceFetchFailed(String stockId, Throwable cause) {
+        return new StockException(StockErrorStatus.CURRENT_PRICE_FETCH_FAILED, 
+            "현재가 조회 중 오류가 발생했습니다: " + stockId, cause);
+    }
+
 
     // WebSocket 관련 편의 메서드
 

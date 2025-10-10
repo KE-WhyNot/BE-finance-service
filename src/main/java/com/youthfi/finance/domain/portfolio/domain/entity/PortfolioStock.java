@@ -52,9 +52,6 @@ public class PortfolioStock extends BaseEntity {
         this.portfolio = portfolio;
     }
 
-    public void updateAllocationPct(BigDecimal allocationPct) {
-        this.allocationPct = allocationPct;
-    }
 }
 
 

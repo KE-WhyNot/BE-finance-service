@@ -10,6 +10,9 @@ import com.youthfi.finance.domain.stock.domain.repository.ExecutionRepository;
 import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.domain.stock.application.dto.request.StockCurrentPriceRequest;
+import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPriceResponse;
+import com.youthfi.finance.domain.stock.application.usecase.StockApiUseCase;
 import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,22 +34,28 @@ public class TradingService {
     private final StockRepository stockRepository;
     private final SectorRepository sectorRepository;
     private final UserStockRepository userStockRepository;
+    private final StockApiUseCase stockApiUseCase;
+
 
     /**
-     * 주식 매수 처리 
+     * 현재가 기반 주식 매수 처리 (실시간 현재가로 자동 거래)
      */
     @Transactional
-    public Execution executeBuy(String userId, String stockId, Long quantity, BigDecimal price) {
+    public Execution executeBuyAtCurrentPrice(String userId, String stockId, Long quantity, String marketCode) {
+        // 1. 현재가 조회
+        BigDecimal currentPrice = getCurrentStockPrice(stockId, marketCode);
+        
+        // 2. 매수 처리
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> StockException.userNotFound(userId));
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> StockException.stockNotFound(stockId));
 
         // 비즈니스 규칙 검증
-        validateTradingRequest(quantity, price);
-        validateUserBalance(user, price, quantity);
+        validateTradingRequest(quantity, currentPrice);
+        validateUserBalance(user, currentPrice, quantity);
         
-        BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
+        BigDecimal totalPrice = currentPrice.multiply(BigDecimal.valueOf(quantity));
         user.subtractBalance(totalPrice);
 
         // 거래 내역 저장
@@ -56,7 +66,7 @@ public class TradingService {
                 .executedAt(LocalDateTime.now())
                 .executionType(Execution.ExecutionType.BUY)
                 .quantity(quantity)
-                .price(price)
+                .price(currentPrice)
                 .totalPrice(totalPrice)
                 .build();
         Execution saved = executionRepository.save(execution);
@@ -73,26 +83,30 @@ public class TradingService {
                                 .totalValue(BigDecimal.ZERO)
                                 .build()
                 ));
-        userStock.addQuantity(quantity, price);
+        userStock.addQuantity(quantity, currentPrice);
         userStockRepository.save(userStock);
 
         return saved;
     }
 
     /**
-     * 주식 매도 처리
+     * 현재가 기반 주식 매도 처리 (실시간 현재가로 자동 거래)
      */
     @Transactional
-    public Execution executeSell(String userId, String stockId, Long quantity, BigDecimal price) {
+    public Execution executeSellAtCurrentPrice(String userId, String stockId, Long quantity, String marketCode) {
+        // 1. 현재가 조회
+        BigDecimal currentPrice = getCurrentStockPrice(stockId, marketCode);
+        
+        // 2. 매도 처리
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> StockException.userNotFound(userId));
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> StockException.stockNotFound(stockId));
 
         // 비즈니스 규칙 검증
-        validateTradingRequest(quantity, price);
+        validateTradingRequest(quantity, currentPrice);
         
-        BigDecimal totalPrice = price.multiply(BigDecimal.valueOf(quantity));
+        BigDecimal totalPrice = currentPrice.multiply(BigDecimal.valueOf(quantity));
         user.addBalance(totalPrice);
 
         Execution execution = Execution.builder()
@@ -102,7 +116,7 @@ public class TradingService {
                 .executedAt(LocalDateTime.now())
                 .executionType(Execution.ExecutionType.SELL)
                 .quantity(quantity)
-                .price(price)
+                .price(currentPrice)
                 .totalPrice(totalPrice)
                 .build();
         Execution saved = executionRepository.save(execution);
@@ -114,6 +128,28 @@ public class TradingService {
         userStockRepository.save(userStock);
 
         return saved;
+    }
+
+    /**
+     * 현재가 조회 (KIS API 연동)
+     */
+    private BigDecimal getCurrentStockPrice(String stockId, String marketCode) {
+        try {
+            // StockApiUseCase를 통해 현재가 조회
+            StockCurrentPriceRequest request = new StockCurrentPriceRequest(marketCode, stockId);
+            StockCurrentPriceResponse response = stockApiUseCase.getStockCurrentPrice(request);
+            
+            // stck_prpr 값 추출
+            if (response.stckPrpr() != null) {
+                return response.stckPrpr();
+            } else {
+                throw StockException.currentPriceNotAvailable(stockId);
+            }
+        } catch (StockException e) {
+            throw e;
+        } catch (Exception e) {
+            throw StockException.currentPriceFetchFailed(stockId, e);
+        }
     }
 
     /**
@@ -133,7 +169,7 @@ public class TradingService {
     /**
      * 매수/매도별 거래 내역 조회 
      */
-    public List<Execution> getExecutionsByUserIdAndIsBuy(String userId, Boolean isBuy) {
+    public List<Execution> getExecutionsByUserIdAndIsBuy(String userId, boolean isBuy) {
         return executionRepository.findByUserUserIdAndExecutionTypeOrderByExecutedAtDesc(userId, 
                 isBuy ? Execution.ExecutionType.BUY : Execution.ExecutionType.SELL);
     }

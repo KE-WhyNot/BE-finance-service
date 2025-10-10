@@ -65,15 +65,6 @@ public class Portfolio extends BaseEntity {
         this.lowestValue = lowestValue;
     }
 
-    public void addStock(PortfolioStock portfolioStock) {
-        this.portfolioStocks.add(portfolioStock);
-        portfolioStock.setPortfolio(this);
-    }
-
-    public void removeStock(PortfolioStock portfolioStock) {
-        this.portfolioStocks.remove(portfolioStock);
-        portfolioStock.setPortfolio(null);
-    }
 }
 
 

@@ -16,6 +16,9 @@ public record PortfolioResponse(
 
     List<RecommendedStock> recommendedStocks,
 
+    @Schema(description = "예적금 추천 비율", example = "30.0")
+    BigDecimal allocationSavings,
+
     @Schema(description = "생성일시", example = "2025-01-01T10:30:00")
     LocalDateTime createdAt,
 
