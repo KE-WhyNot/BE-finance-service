@@ -1,0 +1,17 @@
+spring:
+  cache:
+    # Use in-memory cache for tests to avoid external Redis dependency
+    type: simple
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Optional: reduce log noise during tests
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    com.youthfi.finance: INFO
+
+

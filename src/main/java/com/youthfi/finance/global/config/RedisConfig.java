@@ -2,7 +2,7 @@ package com.youthfi.finance.global.config;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,22 +13,20 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import com.youthfi.finance.domain.stock.application.dto.response.ChartData;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnClass(RedisTemplate.class)
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
-
-    @Value("${spring.data.redis.port}")
-    private int port;
-
-    @Value("${spring.data.redis.password}")
-    private String password;
+    private final String host = "localhost";
+    private final int port = 6379;
+    private final String password = "";
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
@@ -73,6 +71,16 @@ public class RedisConfig {
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericToStringSerializer<>(LocalDateTime.class));
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, ChartData> redisChartDataTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, ChartData> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.afterPropertiesSet();
         return template;
     }

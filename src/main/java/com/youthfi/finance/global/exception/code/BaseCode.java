@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import java.util.Objects;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class BaseCode {
 
     private final HttpStatus httpStatus;
