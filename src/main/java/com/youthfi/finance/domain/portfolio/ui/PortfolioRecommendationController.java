@@ -1,5 +1,12 @@
 package com.youthfi.finance.domain.portfolio.ui;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
 import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.application.usecase.PortfolioUseCase;
@@ -7,18 +14,17 @@ import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
+
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/portfolio-recommendation")
 @RequiredArgsConstructor
 @Tag(name = "PortfolioRecommendation", description = "AI 포트폴리오 추천 API")
+@SecurityRequirement(name = "X-User-Id")
 public class PortfolioRecommendationController implements BaseApi {
 
     private final PortfolioUseCase portfolioRecommendationUseCase;

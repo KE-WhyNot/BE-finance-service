@@ -13,6 +13,7 @@ import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/ai/management")
 @RequiredArgsConstructor
 @Slf4j
+@SecurityRequirement(name = "X-User-Id")
 public class AiManagementController implements BaseApi {
 
     private final AiServiceManagementUseCase aiServiceManagementUseCase;

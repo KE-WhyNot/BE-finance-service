@@ -24,17 +24,27 @@ public class ChatUseCase {
      */
     @Transactional
     public ChatResponse processChat(ChatRequest request, String userId) {
-        log.info("채팅 처리 시작: userId={}, sessionId={}", userId, request.session_id());
+        log.info("채팅 처리 시작: userId={}, sessionId={}, message={}", userId, request.session_id(), request.message());
         
-        // 1. 사용자 ID가 포함된 ChatRequest 생성
-        ChatRequest chatRequest = new ChatRequest(
-                request.message(),
-                userId,
-                request.session_id()
-        );
-        
-        // 2. 비즈니스 로직은 Service에 위임
-        return chatSessionService.processChat(chatRequest);
+        try {
+            // 1. 사용자 ID가 포함된 ChatRequest 생성
+            ChatRequest chatRequest = new ChatRequest(
+                    request.message(),
+                    userId,
+                    request.session_id()
+            );
+            log.info("ChatRequest 생성 완료: user_id={}, session_id={}", chatRequest.user_id(), chatRequest.session_id());
+            
+            // 2. 비즈니스 로직은 Service에 위임
+            log.info("ChatSessionService.processChat 호출 시작");
+            ChatResponse response = chatSessionService.processChat(chatRequest);
+            log.info("ChatSessionService.processChat 호출 완료");
+            
+            return response;
+        } catch (Exception e) {
+            log.error("채팅 처리 중 오류 발생: userId={}, sessionId={}", userId, request.session_id(), e);
+            throw e;
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
+import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioRepository;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.domain.user.domain.repository.UserRepository;
@@ -86,10 +87,19 @@ public class PortfolioService {
                 ))
                 .toList();
 
+        // 주식 배분 비율의 합계를 계산
+        BigDecimal totalStockAllocation = portfolio.getPortfolioStocks().stream()
+                .map(PortfolioStock::getAllocationPct)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 예적금 비율 = 100% - 주식 배분 비율 합계
+        BigDecimal allocationSavings = BigDecimal.valueOf(100).subtract(totalStockAllocation);
+
         return new PortfolioResponse(
                 portfolio.getPortfolioId(),
                 portfolio.getUser().getUserId(),
                 recommendedStocks,
+                allocationSavings,
                 portfolio.getCreatedAt(),
                 portfolio.getUpdatedAt()
         );

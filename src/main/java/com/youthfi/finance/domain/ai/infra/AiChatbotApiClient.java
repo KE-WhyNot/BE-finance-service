@@ -47,8 +47,18 @@ public class AiChatbotApiClient {
             HttpEntity<ChatRequest> httpEntity = new HttpEntity<>(request, headers);
             
             // API 호출
+            String apiUrl = aiApiProperties.getChatbot().getApiUrl();
+            log.info("AI 챗봇 API URL: {}", apiUrl);
+            
+            if (apiUrl == null || apiUrl.trim().isEmpty()) {
+                throw new RuntimeException("AI 챗봇 API URL이 설정되지 않았습니다.");
+            }
+            
+            String fullUrl = apiUrl + "/api/v1/chat";
+            log.info("전체 API URL: {}", fullUrl);
+            
             ResponseEntity<ChatResponse> response = restTemplate.exchange(
-                    aiApiProperties.getChatbot().getApiUrl() + "/api/v1/chat",
+                    fullUrl,
                     HttpMethod.POST,
                     httpEntity,
                     ChatResponse.class
