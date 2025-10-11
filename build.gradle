@@ -51,8 +51,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 
 	// Database
-	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// GCP (ID Token 발급)
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
 
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

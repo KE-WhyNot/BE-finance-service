@@ -1,0 +1,162 @@
+# ===========================================
+# Youth-Fi Finance Service Application Config
+# ===========================================
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+  show-actuator: true
+
+spring:
+  application:
+    name: finance-service
+  profiles:
+    active: dev
+  config:
+    import: optional:secret-application.yml
+  configuration:
+    properties:
+      enabled: true
+  
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+  
+
+  # ===========================================
+  # Cache Configuration
+  # ===========================================
+  cache:
+    type: redis  # Redis 사용
+    redis:
+      time-to-live: 1800000 # 30분 (밀리초)
+      key-prefix: "cache:"
+      cache-null-values: false
+      enable-statistics: true
+  
+  # ===========================================
+  # WebSocket Configuration
+  # ===========================================
+  websocket:
+    servlet:
+      allowed-origins: "*"
+  
+  # ===========================================
+  # Jackson Configuration (JSON 직렬화)
+  # ===========================================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # LocalDate를 ISO 문자열로 직렬화
+    deserialization:
+      fail-on-unknown-properties: false  # 알 수 없는 속성 무시
+    time-zone: Asia/Seoul  # 한국 시간대
+  
+  # ===========================================
+  # Actuator Configuration
+  # ===========================================
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,prometheus
+    endpoint:
+      health:
+        show-details: always
+    metrics:
+      export:
+        prometheus:
+          enabled: true
+
+
+# ===========================================
+# Logging Configuration
+# ===========================================
+logging:
+  level:
+    root: INFO
+    com.youthfi.finance: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.cache: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.data.redis: DEBUG
+    # WebSocket 관련 로깅
+    org.java_websocket: DEBUG
+    # KIS API 관련 로깅
+    org.springframework.web.client.RestTemplate: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# ===========================================
+# Server Configuration
+# ===========================================
+server:
+  port: 8082
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  tomcat:
+    max-connections: 8192
+    accept-count: 100
+    max-threads: 200
+    min-spare-threads: 10
+
+# ===========================================
+# WebSocket Configuration (KIS API 제약사항)
+# ===========================================
+websocket:
+  kis:
+    # WebSocket 서버 URL
+    real-url: ws://ops.koreainvestment.com:21000
+    mock-url: ws://ops.koreainvestment.com:21000
+    
+    # 승인키 발급 URL
+    approval-url: https://openapi.koreainvestment.com:9443/oauth2/Approval
+    mock-approval-url: https://openapivts.koreainvestment.com:9443/oauth2/Approval
+    
+    # WebSocket 제약사항
+    limits:
+      max-stocks-per-appkey: 42  # 한 앱키당 최대 42개 종목
+      max-stocks-per-tr-id: 21   # 한 trId당 최대 21개 종목 (42÷2)
+      total-appkeys: 2           # 총 2개 앱키 사용
+      total-max-stocks: 84       # 총 최대 84개 종목 (42×2)
+    
+    # TR_ID 설정
+    tr-ids:
+      - H0STASP0  # 호가 정보
+      - H0STCNT0  # 체결 정보
+    
+    # 연결 설정
+    connection:
+      reconnect-interval: 5000    # 재연결 간격 (ms)
+      max-reconnect-attempts: 10  # 최대 재연결 시도 횟수
+      timeout: 10000             # 연결 타임아웃 (ms)
+
+# ===========================================
+# CORS Configuration (CorsProperties.java에서 사용)
+# ===========================================
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:8082
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  max-age: 3600

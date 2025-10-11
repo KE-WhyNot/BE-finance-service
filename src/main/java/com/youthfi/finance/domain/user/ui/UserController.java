@@ -1,14 +1,19 @@
 package com.youthfi.finance.domain.user.ui;
 
-import com.youthfi.finance.domain.user.application.dto.response.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.youthfi.finance.domain.user.application.dto.response.UserResponse;
 import com.youthfi.finance.domain.user.application.usecase.UserUseCase;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")

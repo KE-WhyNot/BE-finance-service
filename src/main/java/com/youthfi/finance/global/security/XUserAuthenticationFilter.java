@@ -1,21 +1,22 @@
 package com.youthfi.finance.global.security;
 
+import java.io.IOException;
+import java.util.Collections;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.youthfi.finance.global.exception.UserException;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
-import com.youthfi.finance.global.exception.UserException;
-
-import java.io.IOException;
-import java.util.Collections;
 
 @Slf4j
 @Component
@@ -33,10 +34,13 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
             
             if (StringUtils.hasText(userId)) {
                 // 2. 사용자 ID 유효성 검증 (간단한 형식 체크)
-                if (isValidUserId(userId)) {
+                boolean isValid = isValidUserId(userId);
+                log.debug("사용자 ID 유효성 검증 결과: {} for userId: {}", isValid, userId);
+                
+                if (isValid) {
                     // 3. SecurityContext에 인증 정보 설정
                     UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                        new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     
                     log.debug("X-User-Id 인증 성공: {}", userId);
@@ -49,7 +53,7 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                 throw UserException.invalidUserId("X-User-Id 헤더가 필요합니다.");
             }
         } catch (Exception e) {
-            log.error("X-User-Id 인증 처리 중 오류 발생: {}", e.getMessage());
+            log.error("X-User-Id 인증 처리 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("인증 처리 중 오류가 발생했습니다.", e);
         }
         
@@ -64,8 +68,9 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
     private boolean isValidUserId(String userId) {
         return StringUtils.hasText(userId) && userId.matches("^[a-zA-Z0-9_-]+$");
     }
-    
-    
+
+
+
     /**
      * 특정 경로는 인증을 건너뛰도록 설정
      */
@@ -76,7 +81,7 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
         log.debug("XUserAuthenticationFilter shouldNotFilter 체크: {}", path);
         
         // 공개 엔드포인트는 인증 건너뛰기
-        boolean shouldSkip = 
+        boolean shouldSkip = path.equals("/api/user") || 
                path.equals("/api/user/exists") ||
                path.startsWith("/ws/") ||
                path.startsWith("/swagger-ui") ||

@@ -1,25 +1,26 @@
 package com.youthfi.finance.domain.portfolio.application.usecase;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysisResponse;
 import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
-import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioRiskService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioService;
 import com.youthfi.finance.domain.portfolio.domain.service.PortfolioStockService;
 import com.youthfi.finance.domain.portfolio.infra.LLMApiClient;
 import com.youthfi.finance.global.exception.PortfolioException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional(readOnly = true)
@@ -58,6 +59,18 @@ public class PortfolioUseCase {
         }
 
         return portfolio;
+    }
+
+    /**
+     * AI 포트폴리오 추천 생성 (Controller용)
+     */
+    @Transactional
+    public PortfolioResponse generateAiPortfolioRecommendation(String userId) {
+        // 1. AI 포트폴리오 추천 생성
+        Portfolio portfolio = generatePortfolioRecommendation(userId);
+        
+        // 2. PortfolioResponse로 변환하여 반환
+        return portfolioService.convertToPortfolioResponse(portfolio);
     }
 
 
