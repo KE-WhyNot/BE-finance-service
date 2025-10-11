@@ -99,6 +99,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}
           tags: |
             docker.io/${{ secrets.dockerhub_username }}/${{ env.IMAGE_NAME }}:develop
             docker.io/${{ secrets.dockerhub_username }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
@@ -109,6 +111,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            GCP_SA_KEY=${{ secrets.GCP_SA_KEY }}
           tags: |
             docker.io/${{ secrets.dockerhub_username }}/${{ env.IMAGE_NAME }}:latest
             docker.io/${{ secrets.dockerhub_username }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
