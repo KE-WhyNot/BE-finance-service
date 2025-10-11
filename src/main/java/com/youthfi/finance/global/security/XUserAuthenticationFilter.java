@@ -1,20 +1,22 @@
 package com.youthfi.finance.global.security;
 
+import java.io.IOException;
+import java.util.Collections;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.youthfi.finance.global.exception.UserException;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
-import com.youthfi.finance.global.exception.UserException;
-
-import java.io.IOException;
-import java.util.Collections;
 
 @Slf4j
 @Component
@@ -35,10 +37,14 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
             
             // 1. X-User-Id 헤더에서 사용자 ID 추출
             String userId = request.getHeader("X-User-Id");
+            log.debug("X-User-Id 헤더 값: {}", userId);
             
             if (StringUtils.hasText(userId)) {
                 // 2. 사용자 ID 유효성 검증 (간단한 형식 체크)
-                if (isValidUserId(userId)) {
+                boolean isValid = isValidUserId(userId);
+                log.debug("사용자 ID 유효성 검증 결과: {} for userId: {}", isValid, userId);
+                
+                if (isValid) {
                     // 3. SecurityContext에 인증 정보 설정
                     UsernamePasswordAuthenticationToken authentication = 
                         new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
