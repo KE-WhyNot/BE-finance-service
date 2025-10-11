@@ -12,9 +12,6 @@ WORKDIR /app
 COPY gradle/ gradle/
 COPY gradlew gradlew.bat build.gradle settings.gradle ./
 
-# 의존성 다운로드 (캐시 레이어)
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
-
 # 소스 코드 복사
 COPY src/ src/
 
