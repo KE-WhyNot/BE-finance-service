@@ -1,7 +1,6 @@
 package com.youthfi.finance.global.config;
 
 import com.youthfi.finance.global.config.properties.CorsProperties;
-import com.youthfi.finance.global.security.InternalRequestFilter;
 import com.youthfi.finance.global.security.XUserAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +22,6 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final InternalRequestFilter internalRequestFilter;
     private final XUserAuthenticationFilter xUserAuthenticationFilter;
     private final CorsProperties corsProperties;
 
@@ -65,9 +63,7 @@ public class SecurityConfig {
                 // 기타 모든 요청은 인증 필요
                 .anyRequest().authenticated()
             )
-            
-            // 필터 순서: 내부 요청 체크 → X-User-Id 인증
-            .addFilterBefore(internalRequestFilter, UsernamePasswordAuthenticationFilter.class)
+
             .addFilterBefore(xUserAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

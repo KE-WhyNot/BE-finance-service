@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -26,22 +27,16 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                                   FilterChain filterChain) throws ServletException, IOException {
         
         try {
-            Boolean isInternal = (Boolean) request.getAttribute("isInternalRequest");
-            if (isInternal != null && isInternal) {
-                log.debug("내부 요청 확인 완료: {}", request.getRequestURI());
-                filterChain.doFilter(request, response);
-                return;
-            }
-            
             // 1. X-User-Id 헤더에서 사용자 ID 추출
             String userId = request.getHeader("X-User-Id");
+            log.debug("X-User-Id 헤더 값: {}", userId);
             
             if (StringUtils.hasText(userId)) {
                 // 2. 사용자 ID 유효성 검증 (간단한 형식 체크)
                 if (isValidUserId(userId)) {
                     // 3. SecurityContext에 인증 정보 설정
                     UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     
                     log.debug("X-User-Id 인증 성공: {}", userId);
@@ -81,7 +76,7 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
         log.debug("XUserAuthenticationFilter shouldNotFilter 체크: {}", path);
         
         // 공개 엔드포인트는 인증 건너뛰기
-        boolean shouldSkip = path.equals("/api/user") || 
+        boolean shouldSkip = 
                path.equals("/api/user/exists") ||
                path.startsWith("/ws/") ||
                path.startsWith("/swagger-ui") ||

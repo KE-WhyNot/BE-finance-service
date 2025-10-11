@@ -300,7 +300,7 @@ public class KisChartApiClient {
                 if ("1y".equals(period)) {
                     int requestedYears = extractYears(range);
                     if (candles.size() > requestedYears) {
-                        candles = candles.subList(0, Math.min(requestedYears, candles.size()));
+                        candles = new ArrayList<>(candles.subList(0, Math.min(requestedYears, candles.size())));
                     }
                 }
             }

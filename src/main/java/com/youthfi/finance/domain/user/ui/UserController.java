@@ -20,14 +20,9 @@ public class UserController implements BaseApi {
 
     @Operation(summary = "사용자 생성", description = "새로운 사용자를 생성합니다.")
     @PostMapping
-    public BaseResponse<UserResponse> createUser() {
-        // 1. 인증된 사용자 ID 조회
-        String userId = SecurityUtils.getCurrentUserId();
-        
-        // 2. UseCase 호출
+    public BaseResponse<UserResponse> createUser(@RequestHeader("X-User-Id") String userId) {
+        // X-User-Id 헤더에서 사용자 ID 받기
         UserResponse user = userUseCase.createUser(userId);
-        
-        // 3. 응답 DTO 변환 및 반환
         return BaseResponse.onSuccess(user);
     }
 
