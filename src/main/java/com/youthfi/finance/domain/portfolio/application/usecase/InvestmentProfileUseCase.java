@@ -42,6 +42,9 @@ public class InvestmentProfileUseCase {
                 request.investmentProfile(), 
                 request.availableAssets(), 
                 request.investmentGoal(),
+                request.lossTolerance(),
+                request.financialKnowledge(),
+                request.expectedProfit(),
                 request.interestedSectorNames()
             );
         } else {
@@ -50,6 +53,9 @@ public class InvestmentProfileUseCase {
                 request.investmentProfile(), 
                 request.availableAssets(), 
                 request.investmentGoal(),
+                request.lossTolerance(),
+                request.financialKnowledge(),
+                request.expectedProfit(),
                 request.interestedSectorNames()
             );
         }
@@ -86,6 +92,9 @@ public class InvestmentProfileUseCase {
             request.investmentProfile(), 
             request.availableAssets(), 
             request.investmentGoal(),
+            request.lossTolerance(),
+            request.financialKnowledge(),
+            request.expectedProfit(),
             request.interestedSectorNames()
         );
         

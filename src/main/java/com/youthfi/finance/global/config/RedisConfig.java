@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import com.youthfi.finance.domain.stock.application.dto.response.ChartData;
+import com.youthfi.finance.domain.stock.application.dto.response.ChartDataResponse;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -76,8 +76,8 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, ChartData> redisChartDataTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, ChartData> template = new RedisTemplate<>();
+    public RedisTemplate<String, ChartDataResponse> redisChartDataTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, ChartDataResponse> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());

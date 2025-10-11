@@ -25,7 +25,7 @@ public class StockWebSocketService {
     private final KisApiProperties kisApiProperties;
     private final StockRepository stockRepository;
     private final List<StockWebSocketClient> clients = new ArrayList<>();
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * DB에서 모든 종목 조회

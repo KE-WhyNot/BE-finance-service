@@ -84,8 +84,10 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         
+        log.debug("XUserAuthenticationFilter shouldNotFilter 체크: {}", path);
+        
         // 공개 엔드포인트는 인증 건너뛰기
-        return path.equals("/api/user") || 
+        boolean shouldSkip = path.equals("/api/user") || 
                path.equals("/api/user/exists") ||
                path.startsWith("/ws/") ||
                path.startsWith("/swagger-ui") ||
@@ -94,6 +96,16 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                path.startsWith("/h2-console") ||
                path.startsWith("/actuator") ||
                path.equals("/api/stock/token-status") ||
-               path.equals("/api/stock/current-price");
+               path.equals("/api/stock/current-price") ||
+               path.startsWith("/api/stock/chart/") ||
+               path.startsWith("/api/stock/ws/");
+        
+        if (shouldSkip) {
+            log.debug("인증 필터 건너뛰기: {}", path);
+        } else {
+            log.debug("인증 필터 적용: {}", path);
+        }
+        
+        return shouldSkip;
     }
 }

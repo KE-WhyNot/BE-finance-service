@@ -52,13 +52,15 @@ public class SecurityConfig {
                     "/actuator/**",
                     "/api/stock/token-status",
                     "/api/stock/current-price",
-                    "/api/stock/chart/**"
+                    "/api/stock/chart/**",
+                    "/api/stock/ws/**"
                 ).permitAll()
                 
-                // 인증이 필요한 엔드포인트
+                // 인증이 필요한 엔드포인트 (WebSocket 제외)
                 .requestMatchers(
                     "/api/user/**",
-                    "/api/stock/**",
+                    "/api/stock/trading/**",
+                    "/api/stock/user-stock/**",
                     "/api/portfolio/**",
                     "/api/ai/**"
                 ).authenticated()

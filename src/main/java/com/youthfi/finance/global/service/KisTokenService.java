@@ -23,9 +23,6 @@ public class KisTokenService {
     private final RedisTemplate<String, String> redisTemplate;
 
 
-    
-
-
 
     public KisTokenService(KisApiProperties kisApiProperties, RestTemplate restTemplate, RedisTemplate<String, String> redisTemplate) {
         this.kisApiProperties = kisApiProperties;
