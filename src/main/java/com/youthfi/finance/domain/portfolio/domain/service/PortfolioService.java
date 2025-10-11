@@ -1,17 +1,19 @@
 package com.youthfi.finance.domain.portfolio.domain.service;
 
-import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
-import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioRepository;
-import com.youthfi.finance.domain.user.domain.repository.UserRepository;
-import com.youthfi.finance.global.exception.PortfolioException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
+import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
+import com.youthfi.finance.domain.portfolio.domain.repository.PortfolioRepository;
+import com.youthfi.finance.domain.user.domain.entity.User;
+import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +72,28 @@ public class PortfolioService {
         return portfolio;
     }
 
-    
+    /**
+     * Portfolio 엔티티를 PortfolioResponse로 변환
+     */
+    public PortfolioResponse convertToPortfolioResponse(Portfolio portfolio) {
+        List<PortfolioResponse.RecommendedStock> recommendedStocks = portfolio.getPortfolioStocks().stream()
+                .map(ps -> new PortfolioResponse.RecommendedStock(
+                        ps.getStock().getStockId(),
+                        ps.getStock().getStockName(),
+                        ps.getAllocationPct(),
+                        ps.getStock().getSector().getSectorName(),
+                        "AI 추천"
+                ))
+                .toList();
+
+        return new PortfolioResponse(
+                portfolio.getPortfolioId(),
+                portfolio.getUser().getUserId(),
+                recommendedStocks,
+                portfolio.getCreatedAt(),
+                portfolio.getUpdatedAt()
+        );
+    }
 }
 
 

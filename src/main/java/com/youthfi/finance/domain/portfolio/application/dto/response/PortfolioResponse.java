@@ -1,10 +1,10 @@
 package com.youthfi.finance.domain.portfolio.application.dto.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "포트폴리오 응답")
 public record PortfolioResponse(
