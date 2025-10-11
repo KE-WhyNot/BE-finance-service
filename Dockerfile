@@ -21,9 +21,6 @@ RUN ./gradlew clean build -x test --no-daemon
 # Stage 2: Runtime stage
 FROM eclipse-temurin:17-jre-jammy
 
-# GCP 서비스 계정 키를 빌드 인수로 받음
-ARG GCP_SA_KEY
-
 WORKDIR /app
 
 # 보안을 위한 non-root 사용자 생성
@@ -35,19 +32,11 @@ ARG JAR_FILE=build/libs/*.jar
 # 애플리케이션 JAR 파일 복사
 COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
-# GCP 서비스 계정 키를 위한 디렉토리 생성 및 권한 설정
-RUN mkdir -p /app/config && \
-    chown -R app:app /app
-
-# GCP 서비스 계정 키 파일 생성 (빌드 시점에)
-RUN if [ -n "$GCP_SA_KEY" ]; then \
-        echo "$GCP_SA_KEY" > /app/config/gcp-service-account.json && \
-        chown app:app /app/config/gcp-service-account.json; \
-    fi
+# 파일 소유권을 app 사용자로 설정
+RUN chown -R app:app /app
 
 # 환경변수 설정
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV GCP_SA_KEY_FILE=/app/config/gcp-service-account.json
 
 # 포트 노출
 EXPOSE 8082
