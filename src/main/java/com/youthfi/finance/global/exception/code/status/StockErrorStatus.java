@@ -68,7 +68,9 @@ public enum StockErrorStatus implements BaseCodeInterface {
     KIS_API_INVALID_RESPONSE(HttpStatus.BAD_GATEWAY, "STOCK10004", "KIS API로부터 유효하지 않은 응답을 받았습니다."),
     KIS_API_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "STOCK10005", "KIS API 요청 한도를 초과했습니다."),
     KIS_API_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "STOCK10006", "KIS API 인증에 실패했습니다."),
-    KIS_API_INSUFFICIENT_PERMISSION(HttpStatus.FORBIDDEN, "STOCK10006", "KIS API 권한이 부족합니다."),
+    KIS_API_INSUFFICIENT_PERMISSION(HttpStatus.FORBIDDEN, "STOCK10007", "KIS API 권한이 부족합니다."),
+    CURRENT_PRICE_NOT_AVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "STOCK10008", "현재가 정보를 가져올 수 없습니다."),
+    CURRENT_PRICE_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "STOCK10009", "현재가 조회 중 오류가 발생했습니다."),
 
     // ===========================================
     // WebSocket 관련 예외

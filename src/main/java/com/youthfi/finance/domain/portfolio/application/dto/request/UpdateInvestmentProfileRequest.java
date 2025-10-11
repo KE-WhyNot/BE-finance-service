@@ -17,6 +17,15 @@ public record UpdateInvestmentProfileRequest(
     @Schema(description = "투자 목표", example = "HOUSE_PURCHASE")
     InvestmentProfile.InvestmentGoal investmentGoal,
 
+    @Schema(description = "감당가능 손실", example = "THIRTY_PERCENT")
+    InvestmentProfile.LossTolerance lossTolerance,
+
+    @Schema(description = "금융 이해도", example = "HIGH")
+    InvestmentProfile.FinancialKnowledge financialKnowledge,
+
+    @Schema(description = "기대 이익", example = "TWO_FIFTY_PERCENT")
+    InvestmentProfile.ExpectedProfit expectedProfit,
+
     @Schema(description = "관심섹터명 목록", example = "[\"전기전자\", \"통신\", \"바이오\"]")
     List<String> interestedSectorNames
 ) {}

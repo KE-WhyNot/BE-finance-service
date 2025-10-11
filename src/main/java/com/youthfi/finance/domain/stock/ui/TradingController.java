@@ -1,7 +1,6 @@
 package com.youthfi.finance.domain.stock.ui;
 
-import com.youthfi.finance.domain.stock.application.dto.request.BuyStockRequest;
-import com.youthfi.finance.domain.stock.application.dto.request.SellStockRequest;
+import com.youthfi.finance.domain.stock.application.dto.request.CurrentPriceTradingRequest;
 import com.youthfi.finance.domain.stock.application.dto.response.ExecutionResponse;
 import com.youthfi.finance.domain.stock.application.usecase.TradingUseCase;
 import com.youthfi.finance.global.common.BaseResponse;
@@ -25,21 +24,19 @@ public class TradingController implements BaseApi {
 
     private final TradingUseCase tradingUseCase;
 
-    @Operation(summary = "주식 매수", description = "사용자가 특정 종목을 지정 수량과 가격으로 매수합니다.")
+    @Operation(summary = "주식 매수", description = "실시간 현재가로 주식을 자동 매수합니다.")
     @PostMapping("/buy")
-    public BaseResponse<ExecutionResponse> buy(@Valid @RequestBody BuyStockRequest request) {
-    
+    public BaseResponse<ExecutionResponse> buy(@Valid @RequestBody CurrentPriceTradingRequest request) {
         String userId = SecurityUtils.getCurrentUserId();
-        ExecutionResponse execution = tradingUseCase.buyStock(userId, request);
+        ExecutionResponse execution = tradingUseCase.buyStockAtCurrentPrice(userId, request);
         return BaseResponse.onSuccess(execution);
     }
 
-    @Operation(summary = "주식 매도", description = "사용자가 보유한 특정 종목을 지정 수량과 가격으로 매도합니다.")
+    @Operation(summary = "주식 매도", description = "실시간 현재가로 주식을 자동 매도합니다.")
     @PostMapping("/sell")
-    public BaseResponse<ExecutionResponse> sell(@Valid @RequestBody SellStockRequest request) {
-        
-        String userId = SecurityUtils.getCurrentUserId();  
-        ExecutionResponse execution = tradingUseCase.sellStock(userId, request);   
+    public BaseResponse<ExecutionResponse> sell(@Valid @RequestBody CurrentPriceTradingRequest request) {
+        String userId = SecurityUtils.getCurrentUserId();
+        ExecutionResponse execution = tradingUseCase.sellStockAtCurrentPrice(userId, request);
         return BaseResponse.onSuccess(execution);
     }
 

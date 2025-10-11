@@ -6,6 +6,7 @@ import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ public class PortfolioMapper {
                 portfolio.getPortfolioId(),
                 portfolio.getUser().getUserId(),
                 List.of(),
+                BigDecimal.ZERO, // allocationSavings - 기본값 0으로 설정
                 portfolio.getCreatedAt(),
                 portfolio.getUpdatedAt()
         );
@@ -52,6 +54,9 @@ public class PortfolioMapper {
                 investmentProfile.getInvestmentProfile(),
                 investmentProfile.getAvailableAssets(),
                 investmentProfile.getInvestmentGoal(),
+                investmentProfile.getLossTolerance(),
+                investmentProfile.getFinancialKnowledge(),
+                investmentProfile.getExpectedProfit(),
                 interestedSectors,
                 investmentProfile.getCreatedAt(),
                 investmentProfile.getUpdatedAt()
