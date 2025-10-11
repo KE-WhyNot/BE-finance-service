@@ -15,7 +15,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.youthfi.finance.global.config.properties.CorsProperties;
-import com.youthfi.finance.global.security.InternalRequestFilter;
 import com.youthfi.finance.global.security.XUserAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final InternalRequestFilter internalRequestFilter;
     private final XUserAuthenticationFilter xUserAuthenticationFilter;
     private final CorsProperties corsProperties;
 
@@ -69,8 +67,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             
-            // 필터 순서: 내부 요청 체크 → X-User-Id 인증
-            .addFilterBefore(internalRequestFilter, UsernamePasswordAuthenticationFilter.class)
+            // X-User-Id 인증 필터 추가
             .addFilterBefore(xUserAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

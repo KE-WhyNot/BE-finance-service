@@ -29,6 +29,7 @@ public class GcpAuthenticationService {
      */
     public String generateIdToken() {
         try {
+            log.info("GCP ID 토큰 발급 시작");
             GoogleCredentials credentials;
             String key = aiApiProperties.getGcp().getServiceAccount().getKey();
 
@@ -51,6 +52,7 @@ public class GcpAuthenticationService {
 
             if (credentials instanceof IdTokenProvider idTokenProvider) {
                 String targetAudience = aiApiProperties.getGcp().getTargetAudience();
+                log.info("Target Audience: {}", targetAudience);
                 IdToken idToken = idTokenProvider.idTokenWithAudience(targetAudience, null);
                 log.info("GCP ID 토큰 발급 성공");
                 return idToken.getTokenValue();

@@ -4,18 +4,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
+import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.domain.stock.domain.entity.Execution;
 import com.youthfi.finance.domain.stock.domain.entity.InterestStock;
-import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
-import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.global.common.BaseEntity;
 import com.youthfi.finance.global.exception.UserException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;

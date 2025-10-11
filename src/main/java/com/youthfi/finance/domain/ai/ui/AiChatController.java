@@ -18,6 +18,7 @@ import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/ai/chat")
 @RequiredArgsConstructor
 @Slf4j
+@SecurityRequirement(name = "X-User-Id")
 public class AiChatController implements BaseApi {
 
     private final ChatUseCase chatUseCase;
@@ -38,9 +40,17 @@ public class AiChatController implements BaseApi {
     @Operation(summary = "AI 챗봇 채팅", description = "AI 챗봇과 대화를 진행합니다.")
     @PostMapping
     public BaseResponse<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
-        String userId = SecurityUtils.getCurrentUserId();
-        ChatResponse response = chatUseCase.processChat(request, userId);
-        return BaseResponse.onSuccess(response);
+        log.info("AI 채팅 요청 수신: message={}, sessionId={}", request.message(), request.session_id());
+        try {
+            String userId = SecurityUtils.getCurrentUserId();
+            log.info("사용자 ID 추출: {}", userId);
+            ChatResponse response = chatUseCase.processChat(request, userId);
+            log.info("AI 채팅 응답 생성 완료");
+            return BaseResponse.onSuccess(response);
+        } catch (Exception e) {
+            log.error("AI 채팅 처리 중 오류 발생", e);
+            throw e;
+        }
     }
 
     /**

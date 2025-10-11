@@ -1,25 +1,27 @@
 package com.youthfi.finance.domain.portfolio.ui;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
-import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
+import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.application.usecase.InvestmentProfileUseCase;
 import com.youthfi.finance.domain.portfolio.application.usecase.PortfolioUseCase;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
-import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
-import com.youthfi.finance.domain.portfolio.infra.LLMApiClient;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/investment-profile")
