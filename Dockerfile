@@ -29,14 +29,11 @@ ARG GCP_SA_KEY
 
 WORKDIR /app
 
-# 시스템 패키지 업데이트 및 필요한 도구 설치
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # 보안을 위한 non-root 사용자 생성
 RUN useradd -u 10001 -r -s /usr/sbin/nologin app
+
+# JAR 파일을 위한 ARG 설정
+ARG JAR_FILE=build/libs/*.jar
 
 # 애플리케이션 JAR 파일 복사
 COPY --from=builder /app/build/libs/*.jar /app/app.jar
@@ -57,10 +54,6 @@ ENV GCP_SA_KEY_FILE=/app/config/gcp-service-account.json
 
 # 포트 노출
 EXPOSE 8082
-
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8082/actuator/health || exit 1
 
 # non-root 사용자로 전환
 USER 10001
