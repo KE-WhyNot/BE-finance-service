@@ -53,7 +53,7 @@ ENV SPRING_PROFILES_ACTIVE=prod
 ENV GCP_SA_KEY_FILE=/app/config/gcp-service-account.json
 
 # 포트 노출
-EXPOSE 8082
+EXPOSE 8081
 
 # non-root 사용자로 전환
 USER 10001
