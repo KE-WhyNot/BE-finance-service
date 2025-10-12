@@ -4,9 +4,11 @@ import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.youthfi.finance.global.exception.StockException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
+@Component
 public class StockFrontendWebSocketHandler extends TextWebSocketHandler {
     private static final CopyOnWriteArraySet<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
 

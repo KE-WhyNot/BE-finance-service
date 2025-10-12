@@ -1,6 +1,5 @@
 package com.youthfi.finance.domain.stock.domain.entity;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,11 +38,6 @@ public class Stock extends BaseEntity {
     @Column(name = "stock_name", nullable = false, length = 100)
     private String stockName;
 
-    @Column(name = "total_stock", precision = 20, scale = 0)
-    private BigDecimal totalStock; // 시가총액
-
-    @Column(name = "stock_outline", columnDefinition = "TEXT")
-    private String stockOutline;
 
     @Column(name = "stock_image", length = 500)
     private String stockImage;
@@ -60,17 +54,12 @@ public class Stock extends BaseEntity {
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InterestStock> interestStocks = new ArrayList<>();
 
-    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DividendInfo> dividendInfos = new ArrayList<>();
 
     @Builder
-    public Stock(String stockId, Sector sector, String stockName, BigDecimal totalStock, 
-                String stockOutline, String stockImage) {
+    public Stock(String stockId, Sector sector, String stockName, String stockImage) {
         this.stockId = stockId;
         this.sector = sector;
         this.stockName = stockName;
-        this.totalStock = totalStock;
-        this.stockOutline = stockOutline;
         this.stockImage = stockImage;
     }
 

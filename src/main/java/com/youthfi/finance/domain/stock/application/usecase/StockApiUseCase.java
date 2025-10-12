@@ -1,9 +1,9 @@
 package com.youthfi.finance.domain.stock.application.usecase;
 
-import com.youthfi.finance.domain.stock.application.dto.request.DividendScheduleRequest;
 import com.youthfi.finance.domain.stock.application.dto.request.StockCurrentPriceRequest;
 import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPriceResponse;
 import com.youthfi.finance.domain.stock.domain.service.StockApiService;
+import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public class StockApiUseCase {
         Map<String, Object> output = (Map<String, Object>) result.get("output");
         if (output == null) {
             log.error("KIS API 응답에서 output 필드를 찾을 수 없습니다. 응답: {}", result);
-            throw new RuntimeException("KIS API 응답 구조가 올바르지 않습니다.");
+            throw StockException.kisApiInvalidResponseStructure();
         }
         
         // 응답 데이터 파싱
@@ -64,17 +64,6 @@ public class StockApiUseCase {
         }
     }
 
-    /**
-     * 배당일정 조회
-     */
-    public Map<String, Object> getDividendSchedule(DividendScheduleRequest request) {
-        log.info("배당일정 조회 요청 - 종목코드: {}", request.stockCode());
-        
-        Map<String, Object> result = stockApiService.getDividendSchedule(request.stockCode());
-        
-        log.info("배당일정 조회 완료 - 종목코드: {}", request.stockCode());
-        return result;
-    }
 
     /**
      * KIS API 토큰 상태 조회 

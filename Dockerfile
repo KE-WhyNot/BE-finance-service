@@ -39,7 +39,7 @@ RUN chown -R app:app /app
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # 포트 노출
-EXPOSE 8082
+EXPOSE 8081
 
 # non-root 사용자로 전환
 USER 10001

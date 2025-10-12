@@ -82,6 +82,17 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     }
 
     /*
+     * Global 관련 예외 처리
+     */
+    @ExceptionHandler(value = GlobalException.class)
+    public ResponseEntity<BaseResponse<String>> handleGlobalException(GlobalException e) {
+        log.warn("[handleGlobalException] code={} message={}",
+                e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+        BaseCode errorCode = e.getErrorCode();
+        return handleExceptionInternal(errorCode);
+    }
+
+    /*
      * DataIntegrityViolationException 발생 시 예외 처리
      * 데이터베이스 제약조건 위반 시 발생
      */

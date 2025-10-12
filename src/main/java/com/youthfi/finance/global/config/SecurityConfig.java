@@ -48,6 +48,7 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/h2-console/**",
                     "/actuator/**",
+                    "/ws/**",
                     "/api/stock/token-status",
                     "/api/stock/current-price",
                     "/api/stock/chart/**",

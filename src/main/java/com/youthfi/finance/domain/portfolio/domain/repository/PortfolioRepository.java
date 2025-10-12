@@ -10,7 +10,7 @@ import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 
 @Repository
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
-    List<Portfolio> findByUserUserId(String userId);
+    List<Portfolio> findByUserUserIdOrderByCreatedAtDesc(String userId);
 
 }
 

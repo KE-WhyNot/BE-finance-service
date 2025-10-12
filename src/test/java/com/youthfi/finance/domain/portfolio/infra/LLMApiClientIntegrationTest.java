@@ -67,5 +67,3 @@ class LLMApiClientIntegrationTest {
         assertThat(res).isNotNull();
     }
 }
-
-

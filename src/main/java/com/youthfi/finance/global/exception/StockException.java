@@ -122,6 +122,11 @@ public class StockException extends RestApiException {
             "현재가 조회 중 오류가 발생했습니다: " + stockId, cause);
     }
 
+    public static StockException kisApiInvalidResponseStructure() {
+        return new StockException(StockErrorStatus.KIS_API_INVALID_RESPONSE_STRUCTURE, 
+            "KIS API 응답 구조가 올바르지 않습니다.");
+    }
+
 
     // WebSocket 관련 편의 메서드
 

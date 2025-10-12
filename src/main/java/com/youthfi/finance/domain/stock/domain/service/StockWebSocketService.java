@@ -1,9 +1,7 @@
 package com.youthfi.finance.domain.stock.domain.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.youthfi.finance.domain.stock.domain.entity.Stock;
 import com.youthfi.finance.domain.stock.application.dto.response.StockWebSocketResponse;
-import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.infra.StockWebSocketApprovalKeyManager;
 import com.youthfi.finance.domain.stock.infra.StockWebSocketClient;
 import com.youthfi.finance.global.config.properties.KisApiEndpoints;
@@ -15,7 +13,6 @@ import com.youthfi.finance.global.util.StockFrontendWebSocketHandler;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,30 +20,19 @@ public class StockWebSocketService {
 
     private final StockWebSocketApprovalKeyManager approvalKeyManager;
     private final KisApiProperties kisApiProperties;
-    private final StockRepository stockRepository;
     private final List<StockWebSocketClient> clients = new ArrayList<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * DB에서 모든 종목 조회
+     * 지정된 종목들에 대한 WebSocket 시작
      */
-    public List<String> getAllStockCodes() {
-        List<Stock> stocks = stockRepository.findAllByOrderByStockId();
-        return stocks.stream()
-                .map(Stock::getStockId)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 모든 키와 종목에 대한 WebSocket 시작
-     */
-    public void startWebSocketsForAllKeysAndStocks(List<String> allStocks) {
+    public void startWebSocketsForAllKeysAndStocks(List<String> stockCodes) {
         // 기존 연결 정리
         stopAllWebSockets();
         
         List<KisApiProperties.KisKey> keys = kisApiProperties.getKeys();
-        String[] trIds = {KisApiEndpoints.STOCK_ASKING_PRICE_TR_ID, KisApiEndpoints.STOCK_CONCLUSION_TR_ID};
-        int maxPerSession = 21; // trId 2개면 21종목씩
+        String[] trIds = {KisApiEndpoints.STOCK_CONCLUSION_TR_ID}; // 체결가만 구독
+        int maxPerSession = 42; // trId 1개면 42종목씩
         int idx = 0;
         
         for (KisApiProperties.KisKey key : keys) {
@@ -56,8 +42,8 @@ public class StockWebSocketService {
             
             for (String trId : trIds) {
                 List<String> stocksForThisSession = new ArrayList<>();
-                for (int i = 0; i < maxPerSession && idx < allStocks.size(); i++, idx++) {
-                    stocksForThisSession.add(allStocks.get(idx));
+                for (int i = 0; i < maxPerSession && idx < stockCodes.size(); i++, idx++) {
+                    stocksForThisSession.add(stockCodes.get(idx));
                 }
                 
                 if (!stocksForThisSession.isEmpty()) {

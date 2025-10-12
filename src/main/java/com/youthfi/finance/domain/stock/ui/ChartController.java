@@ -1,9 +1,12 @@
 package com.youthfi.finance.domain.stock.ui;
 
 import com.youthfi.finance.domain.stock.application.dto.request.ChartRequest;
+import com.youthfi.finance.domain.stock.application.dto.request.IndexChartRequest;
 import com.youthfi.finance.domain.stock.application.dto.response.ChartDataResponse;
+import com.youthfi.finance.domain.stock.application.dto.response.IndexChartDataResponse;
 import com.youthfi.finance.domain.stock.domain.service.ChartService;
 import com.youthfi.finance.domain.stock.domain.service.ChartCacheService;
+import com.youthfi.finance.domain.stock.domain.service.IndexChartService;
 import com.youthfi.finance.domain.stock.infra.KisChartApiClient;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.swagger.BaseApi;
@@ -27,22 +30,7 @@ public class ChartController implements BaseApi {
     private final ChartService chartService;
     private final KisChartApiClient kisChartApiClient;
     private final ChartCacheService chartCacheService;
-    
-    /**
-     * 차트 데이터 조회 (통합)
-     */
-    @GetMapping("/{stockCode}")
-    @Operation(summary = "차트 데이터 조회", description = "종목의 차트 데이터를 조회합니다.")
-    public ResponseEntity<BaseResponse<ChartDataResponse>> getChart(
-            @PathVariable String stockCode,
-            String period,
-            String range) {
-
-        ChartRequest request = new ChartRequest(stockCode, period, range);
-        ChartDataResponse chartData = chartService.getChartData(request);
-        
-        return ResponseEntity.ok(BaseResponse.onSuccess(chartData));
-    }
+    private final IndexChartService indexChartService;
     
     /**
      * 일봉 차트 조회 (60일)
@@ -116,4 +104,46 @@ public class ChartController implements BaseApi {
         
         return ResponseEntity.ok(BaseResponse.onSuccess("캐시 삭제 완료"));
     }
+    
+    // ========== 지수 차트 API ==========
+    
+    /**
+     * 지수 일봉 차트 조회 (30일)
+     */
+    @GetMapping("/index/{indexCode}/daily")
+    @Operation(summary = "지수 일봉 차트 조회", description = "30일간의 지수 일봉 차트 데이터를 조회합니다.")
+    public ResponseEntity<BaseResponse<IndexChartDataResponse>> getDailyIndexChart(
+            @PathVariable @Parameter(description = "지수 코드 (0001: 코스피, 1001: 코스닥)") String indexCode) {
+
+        IndexChartDataResponse chartData = indexChartService.getDailyIndexChart(indexCode);
+        
+        return ResponseEntity.ok(BaseResponse.onSuccess(chartData));
+    }
+    
+    /**
+     * 지수 주봉 차트 조회 (30주)
+     */
+    @GetMapping("/index/{indexCode}/weekly")
+    @Operation(summary = "지수 주봉 차트 조회", description = "30주간의 지수 주봉 차트 데이터를 조회합니다.")
+    public ResponseEntity<BaseResponse<IndexChartDataResponse>> getWeeklyIndexChart(
+            @PathVariable @Parameter(description = "지수 코드 (0001: 코스피, 1001: 코스닥)") String indexCode) {
+
+        IndexChartDataResponse chartData = indexChartService.getWeeklyIndexChart(indexCode);
+        
+        return ResponseEntity.ok(BaseResponse.onSuccess(chartData));
+    }
+    
+    /**
+     * 지수 월봉 차트 조회 (30개월)
+     */
+    @GetMapping("/index/{indexCode}/monthly")
+    @Operation(summary = "지수 월봉 차트 조회", description = "30개월간의 지수 월봉 차트 데이터를 조회합니다.")
+    public ResponseEntity<BaseResponse<IndexChartDataResponse>> getMonthlyIndexChart(
+            @PathVariable @Parameter(description = "지수 코드 (0001: 코스피, 1001: 코스닥)") String indexCode) {
+
+        IndexChartDataResponse chartData = indexChartService.getMonthlyIndexChart(indexCode);
+        
+        return ResponseEntity.ok(BaseResponse.onSuccess(chartData));
+    }
+
 }
