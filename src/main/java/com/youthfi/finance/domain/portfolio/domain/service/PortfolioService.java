@@ -56,7 +56,7 @@ public class PortfolioService {
      */
 
     public List<Portfolio> findPortfoliosByUserId(String userId) {
-        return portfolioRepository.findByUserUserId(userId);
+        return portfolioRepository.findByUserUserIdOrderByCreatedAtDesc(userId);
     }
 
     /**

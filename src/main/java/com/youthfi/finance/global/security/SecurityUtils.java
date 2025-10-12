@@ -1,5 +1,6 @@
 package com.youthfi.finance.global.security;
 
+import com.youthfi.finance.global.exception.GlobalException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +19,7 @@ public class SecurityUtils {
             return authentication.getName();
         }
         
-        throw new RuntimeException("인증된 사용자를 찾을 수 없습니다.");
+        throw GlobalException.authenticatedUserNotFound();
     }
     
     /**
@@ -36,7 +37,7 @@ public class SecurityUtils {
             }
         }
         
-        throw new RuntimeException("사용자 ID를 찾을 수 없습니다.");
+        throw GlobalException.userIdNotFound();
     }
     
     /**
@@ -46,7 +47,7 @@ public class SecurityUtils {
         String currentUserId = getCurrentUserId();
         
         if (!currentUserId.equals(requestedUserId)) {
-            throw new RuntimeException("접근 권한이 없습니다.");
+            throw GlobalException.accessDenied();
         }
     }
 }

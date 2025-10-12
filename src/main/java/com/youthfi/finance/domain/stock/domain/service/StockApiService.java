@@ -1,6 +1,5 @@
 package com.youthfi.finance.domain.stock.domain.service;
 
-import com.youthfi.finance.domain.stock.infra.DividendScheduleApiClient;
 import com.youthfi.finance.domain.stock.infra.StockCurrentPriceApiClient;
 import com.youthfi.finance.global.service.KisTokenService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import java.util.Map;
 public class StockApiService {
 
     private final StockCurrentPriceApiClient stockCurrentPriceApiClient;
-    private final DividendScheduleApiClient dividendScheduleApiClient;
     private final KisTokenService kisTokenService;
 
     /**
@@ -23,12 +21,6 @@ public class StockApiService {
         return stockCurrentPriceApiClient.getStockCurrentPrice(marketCode, stockCode);
     }
 
-    /**
-     * 배당일정 조회 
-     */
-    public Map<String, Object> getDividendSchedule(String stockCode) {
-        return dividendScheduleApiClient.getDividendSchedule(stockCode);
-    }
 
     /**
      * KIS API 토큰 상태 조회

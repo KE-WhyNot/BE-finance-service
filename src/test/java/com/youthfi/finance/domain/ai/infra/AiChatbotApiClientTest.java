@@ -67,5 +67,3 @@ class AiChatbotApiClientTest {
         assertThat(actual.success()).isTrue();
     }
 }
-
-

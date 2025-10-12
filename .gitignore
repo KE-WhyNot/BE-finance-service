@@ -33,5 +33,7 @@ out/
 /nbdist/
 /.nb-gradle/
 
+src/main/resources/application.yml
 src/main/resources/secret-application.yml
 src/main/resources/gcp-service-account.json
+src/test/resources/application-test.yml

@@ -49,48 +49,7 @@ public class StockWebSocketClient extends WebSocketClient {
                 if (parts.length > 1) {
                     String trId = parts[1];
                     String[] fields = parts[3].split("\\^");
-                    if ("H0STASP0".equals(trId)) {
-                        // 호가 파싱 (4쌍만, 잔량)
-                        String askPrice1 = fields.length > 3 ? fields[3] : "0";
-                        String askPrice2 = fields.length > 4 ? fields[4] : "0";
-                        String askPrice3 = fields.length > 5 ? fields[5] : "0";
-                        String askPrice4 = fields.length > 6 ? fields[6] : "0";
-                        String bidPrice1 = fields.length > 13 ? fields[13] : "0";
-                        String bidPrice2 = fields.length > 14 ? fields[14] : "0";
-                        String bidPrice3 = fields.length > 15 ? fields[15] : "0";
-                        String bidPrice4 = fields.length > 16 ? fields[16] : "0";
-                        // 매도호가잔량1~4: 23~26, 매수호가잔량1~4: 33~36
-                        String askQty1 = fields.length > 23 ? fields[23] : "0";
-                        String askQty2 = fields.length > 24 ? fields[24] : "0";
-                        String askQty3 = fields.length > 25 ? fields[25] : "0";
-                        String askQty4 = fields.length > 26 ? fields[26] : "0";
-                        String bidQty1 = fields.length > 33 ? fields[33] : "0";
-                        String bidQty2 = fields.length > 34 ? fields[34] : "0";
-                        String bidQty3 = fields.length > 35 ? fields[35] : "0";
-                        String bidQty4 = fields.length > 36 ? fields[36] : "0";
-                        List<Integer> askPrices = Arrays.asList(askPrice1, askPrice2, askPrice3, askPrice4).stream().map(Integer::parseInt).toList();
-                        List<Integer> bidPrices = Arrays.asList(bidPrice1, bidPrice2, bidPrice3, bidPrice4).stream().map(Integer::parseInt).toList();
-                        List<Integer> askQtys = Arrays.asList(askQty1, askQty2, askQty3, askQty4).stream().map(Integer::parseInt).toList();
-                        List<Integer> bidQtys = Arrays.asList(bidQty1, bidQty2, bidQty3, bidQty4).stream().map(Integer::parseInt).toList();
-                        String symbol = fields.length > 0 ? fields[0] : "";
-                        StockWebSocketResponse dto = new StockWebSocketResponse(
-                                symbol,
-                                askPrices,
-                                bidPrices,
-                                askQtys,
-                                bidQtys,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                LocalDateTime.now().toString()
-                        );
-                        if (messageConsumer != null) {
-                            messageConsumer.accept(dto);
-                        }
-                        
-                    } else if ("H0STCNT0".equals(trId)) {
+                    if ("H0STCNT0".equals(trId)) {
                         // 체결가 파싱
                         String stckPrpr = fields.length > 2 ? fields[2] : "0";
                         String prdyVrss = fields.length > 4 ? fields[4] : "0";
@@ -100,10 +59,6 @@ public class StockWebSocketClient extends WebSocketClient {
                         String symbol = fields.length > 0 ? fields[0] : "";
                         StockWebSocketResponse dto = new StockWebSocketResponse(
                                 symbol,
-                                null,
-                                null,
-                                null,
-                                null,
                                 Integer.parseInt(stckPrpr),
                                 Integer.parseInt(prdyVrss),
                                 Double.parseDouble(prdyCtrt),
@@ -123,6 +78,18 @@ public class StockWebSocketClient extends WebSocketClient {
             }
         } else {
             log.debug("실시간 데이터 수신: {}", message);
+            // 핑퐁 메시지도 브로드캐스트 (연결 상태 확인용)
+            if (messageConsumer != null && message.contains("PINGPONG")) {
+                try {
+                    // 핑퐁 메시지를 특별한 형식으로 브로드캐스트
+                    messageConsumer.accept(new StockWebSocketResponse(
+                        "PINGPONG", 0, 0, 0.0, 0, 0, LocalDateTime.now().toString()
+                    ));
+                    log.info("핑퐁 메시지 브로드캐스트: {}", message);
+                } catch (Exception e) {
+                    log.error("핑퐁 메시지 브로드캐스트 실패: {}", message, e);
+                }
+            }
         }
     }
 

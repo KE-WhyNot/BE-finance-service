@@ -9,18 +9,6 @@ public record StockWebSocketResponse(
     @Schema(description = "종목코드")
     String symbol,
 
-    @Schema(description = "매도호가 1~4")
-    List<Integer> askPrices,
-
-    @Schema(description = "매수호가 1~4")
-    List<Integer> bidPrices,
-
-    @Schema(description = "매도호가 잔량 1~4")
-    List<Integer> askQtys,
-
-    @Schema(description = "매수호가 잔량 1~4")
-    List<Integer> bidQtys,
-
     @Schema(description = "현재가")
     Integer stckPrpr,
 

@@ -71,6 +71,7 @@ public enum StockErrorStatus implements BaseCodeInterface {
     KIS_API_INSUFFICIENT_PERMISSION(HttpStatus.FORBIDDEN, "STOCK10007", "KIS API 권한이 부족합니다."),
     CURRENT_PRICE_NOT_AVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "STOCK10008", "현재가 정보를 가져올 수 없습니다."),
     CURRENT_PRICE_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "STOCK10009", "현재가 조회 중 오류가 발생했습니다."),
+    KIS_API_INVALID_RESPONSE_STRUCTURE(HttpStatus.BAD_GATEWAY, "STOCK10010", "KIS API 응답 구조가 올바르지 않습니다."),
 
     // ===========================================
     // WebSocket 관련 예외
@@ -80,12 +81,6 @@ public enum StockErrorStatus implements BaseCodeInterface {
     WEBSOCKET_SUBSCRIPTION_FAILED(HttpStatus.BAD_REQUEST, "STOCK11003", "WebSocket 구독에 실패했습니다."),
     WEBSOCKET_MESSAGE_PARSING_FAILED(HttpStatus.BAD_REQUEST, "STOCK11004", "WebSocket 메시지 파싱에 실패했습니다."),
 
-    // ===========================================
-    // 배당 관련 예외
-    // ===========================================
-    DIVIDEND_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "STOCK12001", "배당 정보를 찾을 수 없습니다."),
-    DIVIDEND_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "STOCK12002", "배당 일정을 찾을 수 없습니다."),
-    INVALID_DIVIDEND_DATE(HttpStatus.BAD_REQUEST, "STOCK12003", "유효하지 않은 배당일입니다."),
 
     // ===========================================
     // 섹터 관련 예외

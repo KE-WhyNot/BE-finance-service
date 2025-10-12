@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.youthfi.finance.global.exception.GlobalException;
 import com.youthfi.finance.global.exception.UserException;
 
 import jakarta.servlet.FilterChain;
@@ -54,7 +55,7 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             log.error("X-User-Id 인증 처리 중 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("인증 처리 중 오류가 발생했습니다.", e);
+            throw GlobalException.authenticationProcessingError(e);
         }
         
         filterChain.doFilter(request, response);
@@ -81,8 +82,7 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
         log.debug("XUserAuthenticationFilter shouldNotFilter 체크: {}", path);
         
         // 공개 엔드포인트는 인증 건너뛰기
-        boolean shouldSkip = path.equals("/api/user") || 
-               path.equals("/api/user/exists") ||
+        boolean shouldSkip =
                path.startsWith("/ws/") ||
                path.startsWith("/swagger-ui") ||
                path.startsWith("/v3/api-docs") ||
