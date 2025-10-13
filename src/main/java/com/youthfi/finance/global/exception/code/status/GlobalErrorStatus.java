@@ -23,6 +23,14 @@ public enum GlobalErrorStatus implements BaseCodeInterface {
     _TOO_MANY_REQUEST(HttpStatus.TOO_MANY_REQUESTS, "COMMON429", "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."),
     _PATIENT_CODE_NOT_FOUND(HttpStatus.BAD_REQUEST, "COMMON400", "존재하지 않는 환자 코드입니다."),
 
+    // ===========================================
+    // 인증/보안 관련 예외
+    // ===========================================
+    AUTHENTICATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5001", "인증 처리 중 오류가 발생했습니다."),
+    AUTHENTICATED_USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH5002", "인증된 사용자를 찾을 수 없습니다."),
+    USER_ID_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH5003", "사용자 ID를 찾을 수 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH5004", "접근 권한이 없습니다."),
+
     // 테스트
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "예외처리 테스트입니다.");
 
