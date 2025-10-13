@@ -33,10 +33,9 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")
                         )
                 )
-                .servers(Arrays.asList(
-                        new Server().url("https://localhost:8081").description("HTTPS Server"),
-                        new Server().url("http://localhost:8081").description("HTTP Server")
-                ))
+                .servers(
+                        new Server().url("https://finance.youth-fi.com").description("HTTPS Server"),
+                )
                 .components(new Components()
                         .addSecuritySchemes("X-User-Id", new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY)
