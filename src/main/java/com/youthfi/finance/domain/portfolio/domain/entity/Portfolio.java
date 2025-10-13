@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
 
@@ -63,6 +62,23 @@ public class Portfolio extends BaseEntity {
         this.portfolioName = portfolioName;
         this.highestValue = highestValue;
         this.lowestValue = lowestValue;
+    }
+
+    // Lombok @Getter가 작동하지 않는 경우를 대비한 명시적 getter 메서드들
+    public Long getPortfolioId() {
+        return portfolioId;
+    }
+
+    public String getPortfolioName() {
+        return portfolioName;
+    }
+
+    public BigDecimal getHighestValue() {
+        return highestValue;
+    }
+
+    public BigDecimal getLowestValue() {
+        return lowestValue;
     }
 
 }

@@ -26,8 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AiChatbotApiClient {
 
-    @Autowired
-    @Qualifier("aiRestTemplate")
+    @Qualifier("restTemplate")
     private final RestTemplate restTemplate;
     private final GcpAuthenticationService gcpAuthenticationService;
 

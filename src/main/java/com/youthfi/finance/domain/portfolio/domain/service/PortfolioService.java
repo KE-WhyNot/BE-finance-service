@@ -100,6 +100,8 @@ public class PortfolioService {
                 portfolio.getUser().getUserId(),
                 recommendedStocks,
                 allocationSavings,
+                portfolio.getHighestValue(),
+                portfolio.getLowestValue(),
                 portfolio.getCreatedAt(),
                 portfolio.getUpdatedAt()
         );

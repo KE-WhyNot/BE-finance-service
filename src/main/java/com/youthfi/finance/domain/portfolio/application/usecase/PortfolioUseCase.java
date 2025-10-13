@@ -1,16 +1,15 @@
 package com.youthfi.finance.domain.portfolio.application.usecase;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.youthfi.finance.domain.portfolio.application.dto.response.CompleteInvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysisResponse;
-import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
@@ -32,21 +31,27 @@ public class PortfolioUseCase {
     private final PortfolioStockService portfolioStockService;
     private final LLMApiClient llmApiClient;
     private final PortfolioRiskService portfolioRiskCalculator;
-    private final PortfolioMapper portfolioMapper;
 
+    /**
+     * AI 포트폴리오 추천 생성
+     */
     @Transactional
-    public Portfolio generatePortfolioRecommendation(String userId) {
+    public PortfolioResponse generateAiPortfolioRecommendation(String userId) {
+        // 1. 투자 프로필 조회
         InvestmentProfile investmentProfile = investmentProfileService.getInvestmentProfileByUserId(userId)
                 .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
 
-        InvestmentProfileResponse profileResponse = portfolioMapper.toInvestmentProfileResponse(investmentProfile);
-        PortfolioResponse recommendation = llmApiClient.requestPortfolioRecommendation(profileResponse);
+        // 2. LLM API 호출하여 CompleteInvestmentProfileResponse 받음
+        InvestmentProfileResponse profileResponse = investmentProfileService.toInvestmentProfileResponse(investmentProfile);
+        CompleteInvestmentProfileResponse llmResponse = llmApiClient.requestPortfolioRecommendation(profileResponse);
 
+        // 3. 위험도 분석 수행
         PortfolioRiskAnalysisResponse riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
-                recommendation.recommendedStocks(),
-                BigDecimal.valueOf(10_000_000)
+                llmResponse.recommendedStocks(),
+                investmentProfile.getAvailableAssets()
         );
 
+        // 4. 포트폴리오 엔티티 생성 및 저장
         Portfolio portfolio = portfolioService.createPortfolio(
                 userId,
                 "AI 추천 포트폴리오",
@@ -54,23 +59,33 @@ public class PortfolioUseCase {
                 riskAnalysis.lowestValue()
         );
 
-        for (PortfolioResponse.RecommendedStock stock : recommendation.recommendedStocks()) {
+        // 5. 포트폴리오에 주식 추가
+        for (CompleteInvestmentProfileResponse.RecommendedStock stock : llmResponse.recommendedStocks()) {
             portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.stockId(), stock.allocationPct());
         }
 
-        return portfolio;
-    }
+        // 6. CompleteInvestmentProfileResponse.RecommendedStock을 PortfolioResponse.RecommendedStock으로 변환
+        List<PortfolioResponse.RecommendedStock> portfolioRecommendedStocks = llmResponse.recommendedStocks().stream()
+                .map(stock -> new PortfolioResponse.RecommendedStock(
+                        stock.stockId(),
+                        stock.stockName(),
+                        stock.allocationPct(),
+                        stock.sectorName(),
+                        stock.reason()
+                ))
+                .toList();
 
-    /**
-     * AI 포트폴리오 추천 생성 (Controller용)
-     */
-    @Transactional
-    public PortfolioResponse generateAiPortfolioRecommendation(String userId) {
-        // 1. AI 포트폴리오 추천 생성
-        Portfolio portfolio = generatePortfolioRecommendation(userId);
-        
-        // 2. PortfolioResponse로 변환하여 반환
-        return portfolioService.convertToPortfolioResponse(portfolio);
+        // 7. 종합된 PortfolioResponse 반환 (LLM 응답 + 위험도 분석 + 저장된 포트폴리오 정보)
+        return new PortfolioResponse(
+                portfolio.getPortfolioId(),
+                userId,
+                portfolioRecommendedStocks,
+                llmResponse.allocationSavings(), // LLM에서 받은 예적금 비율 사용
+                riskAnalysis.highestValue(), // 위험도 분석 결과
+                riskAnalysis.lowestValue(),  // 위험도 분석 결과
+                portfolio.getCreatedAt(),
+                portfolio.getUpdatedAt()
+        );
     }
 
 
@@ -104,7 +119,7 @@ public class PortfolioUseCase {
                         "createdAt", portfolio.getCreatedAt(),
                         "stockCount", portfolioStockService.getStockCountByPortfolioId(portfolio.getPortfolioId())
                 ))
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
     }
 }
 

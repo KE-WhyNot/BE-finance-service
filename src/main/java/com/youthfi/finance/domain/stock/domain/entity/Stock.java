@@ -3,7 +3,6 @@ package com.youthfi.finance.domain.stock.domain.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.stock.domain.entity.UserStock;
 import com.youthfi.finance.domain.portfolio.domain.entity.PortfolioStock;
 import com.youthfi.finance.global.common.BaseEntity;
 
