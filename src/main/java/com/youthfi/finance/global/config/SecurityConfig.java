@@ -52,7 +52,7 @@ public class SecurityConfig {
                     "/api/stock/token-status",
                     "/api/stock/current-price",
                     "/api/stock/chart/**",
-                    "/api/stock/ws/**"
+                    "/api/stock/ws/**", "/api/actuator/**"
                 ).permitAll()
                 
                 // 인증이 필요한 엔드포인트 (WebSocket 제외)
