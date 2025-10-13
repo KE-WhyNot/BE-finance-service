@@ -98,4 +98,23 @@ public class StockApiUseCase {
         log.info("종목 목록 조회 완료 - 총 {}개 종목", result.size());
         return result;
     }
+
+    /**
+     * 개별 종목 상세 조회
+     */
+    public StockListResponse getStockDetail(String stockCode) {
+        log.info("개별 종목 상세 조회 요청 - 종목코드: {}", stockCode);
+        
+        Stock stock = stockRepository.findByStockId(stockCode)
+                .orElseThrow(() -> {
+                    log.warn("종목을 찾을 수 없습니다 - 종목코드: {}", stockCode);
+                    return StockException.stockNotFound(stockCode);
+                });
+        
+        StockListResponse result = StockListResponse.from(stock);
+        
+        log.info("개별 종목 상세 조회 완료 - 종목코드: {}, 종목명: {}", 
+                stockCode, result.stockName());
+        return result;
+    }
 }

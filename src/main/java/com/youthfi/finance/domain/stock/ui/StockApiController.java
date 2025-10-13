@@ -43,4 +43,11 @@ public class StockApiController implements BaseApi {
         List<StockListResponse> result = stockApiUseCase.getStockList();
         return BaseResponse.onSuccess(result);
     }
+
+    @Operation(summary = "개별 종목 상세 조회", description = "특정 종목의 상세 정보를 조회합니다.")
+    @GetMapping("/list/{stockCode}")
+    public BaseResponse<StockListResponse> getStockDetail(@PathVariable String stockCode) {
+        StockListResponse result = stockApiUseCase.getStockDetail(stockCode);
+        return BaseResponse.onSuccess(result);
+    }
 }
