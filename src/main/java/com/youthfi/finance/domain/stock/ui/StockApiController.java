@@ -2,6 +2,7 @@ package com.youthfi.finance.domain.stock.ui;
 
 import com.youthfi.finance.domain.stock.application.dto.request.StockCurrentPriceRequest;
 import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPriceResponse;
+import com.youthfi.finance.domain.stock.application.dto.response.StockListResponse;
 import com.youthfi.finance.domain.stock.application.usecase.StockApiUseCase;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.swagger.BaseApi;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -32,6 +34,13 @@ public class StockApiController implements BaseApi {
     @GetMapping("/token-status")
     public BaseResponse<Map<String, Map<String, Object>>> getTokenStatus() {
         Map<String, Map<String, Object>> result = stockApiUseCase.getTokenStatus();
+        return BaseResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "종목 목록 조회", description = "전체 종목 목록을 조회합니다.")
+    @GetMapping("/list")
+    public BaseResponse<List<StockListResponse>> getStockList() {
+        List<StockListResponse> result = stockApiUseCase.getStockList();
         return BaseResponse.onSuccess(result);
     }
 }
