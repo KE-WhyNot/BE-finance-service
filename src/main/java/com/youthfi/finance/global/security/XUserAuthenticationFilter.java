@@ -92,7 +92,10 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                path.equals("/api/stock/token-status") ||
                path.equals("/api/stock/current-price") ||
                path.startsWith("/api/stock/chart/") ||
-               path.startsWith("/api/stock/ws/");
+               path.startsWith("/api/stock/ws/") ||
+               path.contains("swagger") ||
+               path.contains("api-docs") ||
+               path.equals("/api-docs/swagger-config");
         
         if (shouldSkip) {
             log.debug("인증 필터 건너뛰기: {}", path);

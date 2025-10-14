@@ -44,6 +44,7 @@ public class SecurityConfig {
                 // 공개 엔드포인트
                 .requestMatchers(
                     "/v3/api-docs/**",
+                    "/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/h2-console/**",
@@ -52,7 +53,7 @@ public class SecurityConfig {
                     "/api/stock/token-status",
                     "/api/stock/current-price",
                     "/api/stock/chart/**",
-                    "/api/stock/ws/**", "/api/actuator/**"
+                    "/api/stock/ws/**"
                 ).permitAll()
                 
                 // 인증이 필요한 엔드포인트 (WebSocket 제외)
