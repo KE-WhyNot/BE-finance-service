@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // 공개 엔드포인트
                 .requestMatchers(
-                    "/api-docs/**",
+                    "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/h2-console/**",

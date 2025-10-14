@@ -177,8 +177,7 @@ public class KisChartApiClient {
             .fromHttpUrl(KisApiEndpoints.REAL_BASE_URL + KisApiEndpoints.MINUTE_CHART)
             .queryParam("fid_cond_mrkt_div_code", KisApiEndpoints.MARKET_CODE_KOSPI)
             .queryParam("fid_input_iscd", stockCode)
-            .queryParam("fid_input_date_1", getTodayString())
-            .queryParam("fid_input_hour_1", "0900")
+            .queryParam("fid_input_hour_1", "090000")
             .queryParam("fid_pw_data_incu_yn", "Y")
             .queryParam("fid_etc_cls_code", "0")
             .toUriString();
