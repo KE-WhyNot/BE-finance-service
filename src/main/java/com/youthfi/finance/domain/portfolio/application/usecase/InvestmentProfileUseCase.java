@@ -1,21 +1,19 @@
 package com.youthfi.finance.domain.portfolio.application.usecase;
 
-import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInvestmentProfileRequest;
-import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
-import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
-import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
-import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
-import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
-import com.youthfi.finance.domain.user.domain.repository.UserRepository;
-import com.youthfi.finance.global.exception.PortfolioException;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInvestmentProfileRequest;
+import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
+import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
+import com.youthfi.finance.domain.portfolio.domain.service.InvestmentProfileService;
+import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,7 +22,6 @@ public class InvestmentProfileUseCase {
 
     private final InvestmentProfileService investmentProfileService;
     private final UserRepository userRepository;
-    private final PortfolioMapper portfolioMapper;
 
     /**
      * 투자성향 설문 완료 및 저장 또는 업데이트 처리 메서드
@@ -59,7 +56,7 @@ public class InvestmentProfileUseCase {
                 request.interestedSectorNames()
             );
         }
-        return portfolioMapper.toInvestmentProfileResponse(profile);
+        return investmentProfileService.toInvestmentProfileResponse(profile);
     }
 
     /**
@@ -70,7 +67,7 @@ public class InvestmentProfileUseCase {
         InvestmentProfile profile = investmentProfileService.getInvestmentProfileByUserId(userId)
                 .orElseThrow(() -> PortfolioException.investmentProfileNotFound());
         
-        return portfolioMapper.toInvestmentProfileResponse(profile);
+        return investmentProfileService.toInvestmentProfileResponse(profile);
     }
 
     /**
@@ -98,7 +95,7 @@ public class InvestmentProfileUseCase {
             request.interestedSectorNames()
         );
         
-        return portfolioMapper.toInvestmentProfileResponse(profile);
+        return investmentProfileService.toInvestmentProfileResponse(profile);
     }
 
 

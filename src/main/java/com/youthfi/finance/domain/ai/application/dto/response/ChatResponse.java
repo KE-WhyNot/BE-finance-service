@@ -1,10 +1,9 @@
 package com.youthfi.finance.domain.ai.application.dto.response;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record ChatResponse(
     @JsonProperty("reply_text")
     String replyText,
@@ -13,26 +12,24 @@ public record ChatResponse(
     String actionType,
     
     @JsonProperty("action_data")
-    Map<String, Object> actionData,
+    ActionData actionData,
     
     @JsonProperty("chart_image")
     String chartImage,
     
-    @JsonProperty("pinecone_results")
-    List<Map<String, Object>> pineconeResults,
-    
+    @JsonProperty("success")
     Boolean success,
+    
+    @JsonProperty("error_message")
     String errorMessage
 ) {
     public static ChatResponse success(String replyText, String actionType, 
-                                    Map<String, Object> actionData, String chartImage,
-                                    List<Map<String, Object>> pineconeResults) {
+                                    ActionData actionData, String chartImage) {
         return new ChatResponse(
                 replyText,
                 actionType,
                 actionData,
                 chartImage,
-                pineconeResults,
                 true,
                 null
         );
@@ -42,11 +39,34 @@ public record ChatResponse(
         return new ChatResponse(
                 errorMessage,
                 "display_info",
-                Map.of("error", true),
                 null,
                 null,
                 false,
                 errorMessage
         );
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ActionData(
+        @JsonProperty("query_analysis")
+        QueryAnalysis queryAnalysis,
+
+        @JsonProperty("confidence_evaluation")
+        ConfidenceEvaluation confidenceEvaluation
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record QueryAnalysis(
+        @JsonProperty("primary_intent")
+        String primaryIntent,
+
+        @JsonProperty("complexity_level")
+        String complexityLevel
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ConfidenceEvaluation(
+        @JsonProperty("overall_confidence")
+        Double overallConfidence
+    ) {}
 }

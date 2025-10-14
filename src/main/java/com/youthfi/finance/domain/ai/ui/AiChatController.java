@@ -40,15 +40,41 @@ public class AiChatController implements BaseApi {
     @Operation(summary = "AI 챗봇 채팅", description = "AI 챗봇과 대화를 진행합니다.")
     @PostMapping
     public BaseResponse<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
-        log.info("AI 채팅 요청 수신: message={}, sessionId={}", request.message(), request.session_id());
+        log.info("=== AiChatController.chat 시작 ===");
+        log.info("받은 요청 데이터: message={}, sessionId={}", request.message(), request.session_id());
+        
         try {
+            // 사용자 ID 추출
+            log.debug("사용자 ID 추출 시작");
             String userId = SecurityUtils.getCurrentUserId();
-            log.info("사용자 ID 추출: {}", userId);
+            log.info("추출된 사용자 ID: {}", userId);
+            
+            // UseCase 호출
+            log.info("ChatUseCase.processChat 호출 시작");
             ChatResponse response = chatUseCase.processChat(request, userId);
-            log.info("AI 채팅 응답 생성 완료");
-            return BaseResponse.onSuccess(response);
+            log.info("ChatUseCase.processChat 호출 완료");
+            
+            if (response != null) {
+                log.info("Controller에서 받은 응답: replyText={}, success={}, errorMessage={}", 
+                        response.replyText(), response.success(), response.errorMessage());
+            } else {
+                log.error("Controller에서 받은 응답이 null입니다!");
+            }
+            
+            // BaseResponse 생성
+            log.debug("BaseResponse 생성 시작");
+            BaseResponse<ChatResponse> baseResponse = BaseResponse.onSuccess(response);
+            log.info("BaseResponse 생성 완료: code={}, message={}, result 존재={}", 
+                    baseResponse.getCode(), baseResponse.getMessage(), baseResponse.getResult() != null);
+            
+            log.info("=== AiChatController.chat 성공 완료 ===");
+            return baseResponse;
+            
         } catch (Exception e) {
-            log.error("AI 채팅 처리 중 오류 발생", e);
+            log.error("=== AiChatController.chat 중 예외 발생 ===");
+            log.error("예외 타입: {}", e.getClass().getSimpleName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("예외 스택 트레이스:", e);
             throw e;
         }
     }

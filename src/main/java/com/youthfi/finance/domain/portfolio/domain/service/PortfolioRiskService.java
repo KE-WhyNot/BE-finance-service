@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
+import com.youthfi.finance.domain.portfolio.application.dto.response.CompleteInvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioRiskAnalysisResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.StockPriceInfoResponse;
 import com.youthfi.finance.domain.stock.infra.StockCurrentPriceApiClient;
@@ -22,7 +22,7 @@ public class PortfolioRiskService {
 
     private final StockCurrentPriceApiClient stockCurrentPriceApiClient;
 
-    public PortfolioRiskAnalysisResponse calculatePortfolioRisk(List<PortfolioResponse.RecommendedStock> recommendedStocks, BigDecimal investmentAmount){
+    public PortfolioRiskAnalysisResponse calculatePortfolioRisk(List<CompleteInvestmentProfileResponse.RecommendedStock> recommendedStocks, BigDecimal investmentAmount){
         try {
             log.info("포트폴리오 리스크 분석 시작: {}개 종목, 투자금액: {}",
                 recommendedStocks.size(), investmentAmount);
@@ -31,7 +31,7 @@ public class PortfolioRiskService {
             BigDecimal totalLowValue = BigDecimal.ZERO;
             BigDecimal currentValue = BigDecimal.ZERO;
 
-            for (PortfolioResponse.RecommendedStock stock : recommendedStocks) {
+            for (CompleteInvestmentProfileResponse.RecommendedStock stock : recommendedStocks) {
                 StockPriceInfoResponse priceInfo = getStockPriceInfo(stock.stockId());
 
                 BigDecimal stockinvestment = investmentAmount // 종목당 투자 금액

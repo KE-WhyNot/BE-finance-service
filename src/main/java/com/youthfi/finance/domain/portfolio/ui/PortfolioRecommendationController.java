@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
-import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.application.usecase.PortfolioUseCase;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
+import com.youthfi.finance.domain.portfolio.domain.service.PortfolioService;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioRecommendationController implements BaseApi {
 
     private final PortfolioUseCase portfolioRecommendationUseCase;
-    private final PortfolioMapper portfolioMapper;
+    private final PortfolioService portfolioService;
 
     /**
      * 사용자의 모든 AI 추천 포트폴리오 목록을 조회합니다.
@@ -38,7 +38,7 @@ public class PortfolioRecommendationController implements BaseApi {
     public BaseResponse<PortfolioResponse> getMyPortfolioRecommendations() {
         String userId = SecurityUtils.getCurrentUserId();
         Portfolio latest = portfolioRecommendationUseCase.getMyLatestPortfolio(userId);
-        return BaseResponse.onSuccess(portfolioMapper.toPortfolioResponse(latest));
+        return BaseResponse.onSuccess(portfolioService.convertToPortfolioResponse(latest));
     }
 
     /**

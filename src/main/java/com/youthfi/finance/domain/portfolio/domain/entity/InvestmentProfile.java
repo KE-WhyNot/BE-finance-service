@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.youthfi.finance.domain.stock.domain.entity.Sector;
 import com.youthfi.finance.domain.user.domain.entity.User;
 import com.youthfi.finance.global.common.BaseEntity;
 
@@ -84,6 +83,38 @@ public class InvestmentProfile extends BaseEntity {
     // record 기반 DTO 사용 호환을 위한 접근자 명시
     public Long getProfileId() {
         return profileId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public InvestmentProfileType getInvestmentProfile() {
+        return investmentProfile;
+    }
+
+    public BigDecimal getAvailableAssets() {
+        return availableAssets;
+    }
+
+    public InvestmentGoal getInvestmentGoal() {
+        return investmentGoal;
+    }
+
+    public LossTolerance getLossTolerance() {
+        return lossTolerance;
+    }
+
+    public FinancialKnowledge getFinancialKnowledge() {
+        return financialKnowledge;
+    }
+
+    public ExpectedProfit getExpectedProfit() {
+        return expectedProfit;
+    }
+
+    public List<InvestmentProfileSector> getInvestmentProfileSectors() {
+        return investmentProfileSectors;
     }
 
     public void updateProfile(InvestmentProfileType investmentProfile,

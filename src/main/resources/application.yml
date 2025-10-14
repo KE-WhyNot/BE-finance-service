@@ -111,7 +111,7 @@ logging:
 # Server Configuration
 # ===========================================
 server:
-  port: 8082
+  port: 8081
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
