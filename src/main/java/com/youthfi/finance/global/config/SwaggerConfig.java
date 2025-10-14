@@ -10,6 +10,8 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import java.util.Arrays;
 
 @Configuration
 public class SwaggerConfig {
@@ -31,6 +33,8 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")
                         )
                 )
+                .addServersItem(new Server().url("http://localhost:8081").description("Local Development Server"))
+                .addServersItem(new Server().url("https://finance.youth-fi.com").description("HTTPS Server"))
                 .components(new Components()
                         .addSecuritySchemes("X-User-Id", new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY)

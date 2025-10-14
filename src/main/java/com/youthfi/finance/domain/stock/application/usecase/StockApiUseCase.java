@@ -2,6 +2,9 @@ package com.youthfi.finance.domain.stock.application.usecase;
 
 import com.youthfi.finance.domain.stock.application.dto.request.StockCurrentPriceRequest;
 import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPriceResponse;
+import com.youthfi.finance.domain.stock.application.dto.response.StockListResponse;
+import com.youthfi.finance.domain.stock.domain.entity.Stock;
+import com.youthfi.finance.domain.stock.domain.repository.StockRepository;
 import com.youthfi.finance.domain.stock.domain.service.StockApiService;
 import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -19,6 +24,7 @@ import java.util.Map;
 public class StockApiUseCase {
 
     private final StockApiService stockApiService;
+    private final StockRepository stockRepository;
 
     /**
      * 주식현재가 시세 조회 
@@ -74,6 +80,41 @@ public class StockApiUseCase {
         Map<String, Map<String, Object>> result = stockApiService.getTokenStatus();
         
         log.info("KIS API 토큰 상태 조회 완료");
+        return result;
+    }
+
+    /**
+     * 종목 목록 조회
+     */
+    public List<StockListResponse> getStockList() {
+        log.info("종목 목록 조회 요청");
+        
+        List<Stock> stocks = stockRepository.findAllByOrderByStockId();
+        
+        List<StockListResponse> result = stocks.stream()
+                .map(StockListResponse::from)
+                .collect(Collectors.toList());
+        
+        log.info("종목 목록 조회 완료 - 총 {}개 종목", result.size());
+        return result;
+    }
+
+    /**
+     * 개별 종목 상세 조회
+     */
+    public StockListResponse getStockDetail(String stockCode) {
+        log.info("개별 종목 상세 조회 요청 - 종목코드: {}", stockCode);
+        
+        Stock stock = stockRepository.findByStockId(stockCode)
+                .orElseThrow(() -> {
+                    log.warn("종목을 찾을 수 없습니다 - 종목코드: {}", stockCode);
+                    return StockException.stockNotFound(stockCode);
+                });
+        
+        StockListResponse result = StockListResponse.from(stock);
+        
+        log.info("개별 종목 상세 조회 완료 - 종목코드: {}, 종목명: {}", 
+                stockCode, result.stockName());
         return result;
     }
 }

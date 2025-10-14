@@ -1,12 +1,6 @@
 package com.youthfi.finance.domain.portfolio.ui;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
@@ -60,7 +54,7 @@ public class InvestmentProfileController implements BaseApi {
      */
 
     @Operation(summary = "내 투자성향 수정", description = "사용자의 투자성향 프로필 정보를 수정합니다.")
-    @PutMapping("/my")
+    @PatchMapping("/my")
     public BaseResponse<InvestmentProfileResponse> updateMyInvestmentProfile(
             @RequestBody UpdateInvestmentProfileRequest request) {
         String userId = SecurityUtils.getCurrentUserId();

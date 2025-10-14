@@ -2,6 +2,7 @@ package com.youthfi.finance.global.config;
 
 import java.time.LocalDateTime;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,14 +26,21 @@ import lombok.RequiredArgsConstructor;
 @ConditionalOnClass(RedisTemplate.class)
 public class RedisConfig {
 
-    private final String host = "localhost";
-    private final int port = 6379;
-    private final String password = "";
+    @Value("${spring.data.redis.host:localhost}")
+    private String host;
+    
+    @Value("${spring.data.redis.port:6379}")
+    private int port;
+    
+    @Value("${spring.data.redis.password:}")
+    private String password;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(host, port);
-        redisStandaloneConfiguration.setPassword(password);
+        if (password != null && !password.isEmpty()) {
+            redisStandaloneConfiguration.setPassword(password);
+        }
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
