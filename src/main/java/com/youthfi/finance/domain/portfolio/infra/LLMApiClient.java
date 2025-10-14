@@ -62,8 +62,17 @@ public class LLMApiClient {
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("AI 응답 성공: profileId={}", investmentProfile.profileId());
-                return response.getBody();
+                CompleteInvestmentProfileResponse body = response.getBody();
+                java.util.List<CompleteInvestmentProfileResponse.RecommendedStock> stocks = body.recommendedStocks();
+                int stockCount = stocks == null ? 0 : stocks.size();
+                log.info("AI 응답 성공: profileId={}, 종목수={}, 예적금 비율={}",
+                        investmentProfile.profileId(), stockCount, body.allocationSavings());
+                if (stockCount > 0) {
+                    CompleteInvestmentProfileResponse.RecommendedStock first = stocks.get(0);
+                    log.debug("AI 응답 샘플[0]: stockId={}, name={}, allocationPct={}",
+                            first.stockId(), first.stockName(), first.allocationPct());
+                }
+                return body;
             } else {
                 log.error("AI 응답 실패: status={}, profileId={}", response.getStatusCode(), investmentProfile.profileId());
                 throw PortfolioException.llmApiConnectionFailed(new RuntimeException("AI API 호출 실패: " + response.getStatusCode()));

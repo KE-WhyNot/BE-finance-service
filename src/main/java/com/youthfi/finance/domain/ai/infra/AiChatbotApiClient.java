@@ -2,7 +2,6 @@ package com.youthfi.finance.domain.ai.infra;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,45 +36,69 @@ public class AiChatbotApiClient {
      */
     public ChatResponse sendChatRequest(ChatRequest request) {
         try {
-            log.info("AI 챗봇 API 호출 시작: userId={}, sessionId={}", request.user_id(), request.session_id());
+            log.info("=== AI 챗봇 API 호출 시작 ===");
+            log.info("요청 데이터: userId={}, sessionId={}, message={}", 
+                    request.user_id(), request.session_id(), request.message());
 
             // 요청 헤더 설정 (GCP 인증 포함)
+            log.debug("GCP 인증 헤더 생성 시작");
             HttpHeaders headers = createAuthHeaders();
+            log.debug("GCP 인증 헤더 생성 완료: Authorization 헤더 존재={}", 
+                    headers.containsKey("Authorization"));
             
             // HTTP 엔티티 생성
             HttpEntity<ChatRequest> httpEntity = new HttpEntity<>(request, headers);
+            log.debug("HTTP 엔티티 생성 완료");
             
             // API 호출
             String apiUrl = aiApiProperties.getChatbot().getApiUrl();
-            log.info("AI 챗봇 API URL: {}", apiUrl);
+            log.info("설정된 API URL: {}", apiUrl);
             
             if (apiUrl == null || apiUrl.trim().isEmpty()) {
+                log.error("AI 챗봇 API URL이 설정되지 않음");
                 throw new RuntimeException("AI 챗봇 API URL이 설정되지 않았습니다.");
             }
             
-            String fullUrl = apiUrl + "/api/v1/chat";
-            log.info("전체 API URL: {}", fullUrl);
+            // URL 끝의 슬래시 제거 후 경로 추가
+            String baseUrl = apiUrl.endsWith("/") ? apiUrl.substring(0, apiUrl.length() - 1) : apiUrl;
+            String fullUrl = baseUrl + "/api/v1/chat";
+            log.info("최종 API URL: {}", fullUrl);
             
+            log.info("RestTemplate을 통한 API 호출 시작");
             ResponseEntity<ChatResponse> response = restTemplate.exchange(
                     fullUrl,
                     HttpMethod.POST,
                     httpEntity,
                     ChatResponse.class
             );
+            log.info("RestTemplate API 호출 완료");
+
+            log.info("응답 상태 코드: {}", response.getStatusCode());
+            log.info("응답 헤더: {}", response.getHeaders());
+            log.info("응답 본문 존재 여부: {}", response.getBody() != null);
+            
+            if (response.getBody() != null) {
+                ChatResponse chatResponse = response.getBody();
+                log.info("응답 데이터: replyText={}, actionType={}, success={}, errorMessage={}", 
+                        chatResponse.replyText(), chatResponse.actionType(), 
+                        chatResponse.success(), chatResponse.errorMessage());
+            }
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("AI 챗봇 API 호출 성공: userId={}", request.user_id());
+                log.info("=== AI 챗봇 API 호출 성공 ===");
                 return response.getBody();
             } else {
-                log.error("AI 챗봇 API 호출 실패: status={}, userId={}", 
-                         response.getStatusCode(), request.user_id());
+                log.error("=== AI 챗봇 API 호출 실패 ===");
+                log.error("상태 코드: {}, 응답 본문: {}", response.getStatusCode(), response.getBody());
                 throw AiException.chatbotApiConnectionFailed(
                     new RuntimeException("AI 챗봇 API 호출 실패: " + response.getStatusCode()));
             }
 
         } catch (Exception e) {
-            log.error("AI 챗봇 API 호출 중 오류 발생: userId={}, error={}", 
-                     request.user_id(), e.getMessage(), e);
+            log.error("=== AI 챗봇 API 호출 중 예외 발생 ===");
+            log.error("예외 타입: {}", e.getClass().getSimpleName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("예외 스택 트레이스:", e);
             throw AiException.chatbotApiConnectionFailed(e);
         }
     }

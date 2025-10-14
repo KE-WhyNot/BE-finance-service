@@ -103,20 +103,52 @@ public class ChatSessionService {
      * AI 챗봇과 채팅 처리 (비즈니스 로직)
      */
     public ChatResponse processChat(ChatRequest request) {
-        log.info("채팅 처리 시작: userId={}, sessionId={}", request.user_id(), request.session_id());
+        log.info("=== ChatSessionService.processChat 시작 ===");
+        log.info("요청 데이터: userId={}, sessionId={}, message={}", 
+                request.user_id(), request.session_id(), request.message());
         
-        // 1. 세션 활동 시간 업데이트
-        if (request.session_id() != null) {
-            updateSessionActivity(request.session_id());
+        try {
+            // 1. 세션 활동 시간 업데이트
+            if (request.session_id() != null) {
+                log.debug("세션 활동 시간 업데이트 시작: sessionId={}", request.session_id());
+                updateSessionActivity(request.session_id());
+                log.debug("세션 활동 시간 업데이트 완료");
+            } else {
+                log.debug("세션 ID가 null이므로 세션 활동 시간 업데이트 건너뜀");
+            }
+            
+            // 2. AI 챗봇 API 호출
+            log.info("AI 챗봇 API 호출 시작");
+            ChatResponse response = aiChatbotApiClient.sendChatRequest(request);
+            log.info("AI 챗봇 API 호출 완료");
+            
+            if (response != null) {
+                log.info("받은 응답 데이터: replyText={}, success={}, errorMessage={}", 
+                        response.replyText(), response.success(), response.errorMessage());
+            } else {
+                log.error("AI 챗봇 API 응답이 null입니다!");
+            }
+            
+            // 3. 로그 저장
+            log.debug("AI 서비스 로그 저장 시작");
+            try {
+                aiServiceLogService.saveLog(createChatLog(request, response));
+                log.debug("AI 서비스 로그 저장 완료");
+            } catch (Exception logException) {
+                log.error("AI 서비스 로그 저장 중 오류 발생: {}", logException.getMessage());
+                // 로그 저장 실패는 전체 프로세스를 중단시키지 않음
+            }
+            
+            log.info("=== ChatSessionService.processChat 성공 완료 ===");
+            return response;
+            
+        } catch (Exception e) {
+            log.error("=== ChatSessionService.processChat 중 예외 발생 ===");
+            log.error("예외 타입: {}", e.getClass().getSimpleName());
+            log.error("예외 메시지: {}", e.getMessage());
+            log.error("예외 스택 트레이스:", e);
+            throw e;
         }
-        
-        // 2. AI 챗봇 API 호출
-        ChatResponse response = aiChatbotApiClient.sendChatRequest(request);
-        
-        // 3. 로그 저장
-        aiServiceLogService.saveLog(createChatLog(request, response));
-        
-        return response;
     }
 
     /**
@@ -145,10 +177,10 @@ public class ChatSessionService {
                 .serviceType(AiServiceLog.ServiceType.CHATBOT)
                 .requestType(AiServiceLog.RequestType.CHAT_REQUEST)
                 .requestMessage(request.message())
-                .responseMessage(response.replyText())
+                .responseMessage(response != null ? response.replyText() : "응답 없음")
                 .processingTimeMs(0L) // 실제로는 측정된 시간을 넣어야 함
-                .isSuccess(response.success())
-                .errorMessage(response.errorMessage())
+                .isSuccess(response != null ? response.success() : false)
+                .errorMessage(response != null ? response.errorMessage() : "응답이 null입니다")
                 .build();
     }
 }

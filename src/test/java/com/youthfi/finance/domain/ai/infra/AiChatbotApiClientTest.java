@@ -53,7 +53,7 @@ class AiChatbotApiClientTest {
     @Test
     void sendChatRequest_success() {
         ChatRequest request = new ChatRequest("hello", "user-1", "sess-1");
-        ChatResponse expected = ChatResponse.success("ok", "display_info", null, null, null);
+        ChatResponse expected = ChatResponse.success("ok", "display_info", null, null);
 
         when(restTemplate.exchange(
                 eq("https://example.test/api/v1/chat"),

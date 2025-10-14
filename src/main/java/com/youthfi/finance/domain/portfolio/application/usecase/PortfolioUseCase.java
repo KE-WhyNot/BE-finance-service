@@ -45,9 +45,13 @@ public class PortfolioUseCase {
         InvestmentProfileResponse profileResponse = investmentProfileService.toInvestmentProfileResponse(investmentProfile);
         CompleteInvestmentProfileResponse llmResponse = llmApiClient.requestPortfolioRecommendation(profileResponse);
 
-        // 3. 위험도 분석 수행
+        // 3. 위험도 분석 수행 (null 가드)
+        List<CompleteInvestmentProfileResponse.RecommendedStock> safeStocks =
+                java.util.Optional.ofNullable(llmResponse.recommendedStocks())
+                        .orElse(java.util.Collections.emptyList());
+
         PortfolioRiskAnalysisResponse riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
-                llmResponse.recommendedStocks(),
+                safeStocks,
                 investmentProfile.getAvailableAssets()
         );
 
@@ -59,13 +63,13 @@ public class PortfolioUseCase {
                 riskAnalysis.lowestValue()
         );
 
-        // 5. 포트폴리오에 주식 추가
-        for (CompleteInvestmentProfileResponse.RecommendedStock stock : llmResponse.recommendedStocks()) {
+        // 5. 포트폴리오에 주식 추가 (null 가드 적용 리스트 사용)
+        for (CompleteInvestmentProfileResponse.RecommendedStock stock : safeStocks) {
             portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.stockId(), stock.allocationPct());
         }
 
-        // 6. CompleteInvestmentProfileResponse.RecommendedStock을 PortfolioResponse.RecommendedStock으로 변환
-        List<PortfolioResponse.RecommendedStock> portfolioRecommendedStocks = llmResponse.recommendedStocks().stream()
+        // 6. CompleteInvestmentProfileResponse.RecommendedStock을 PortfolioResponse.RecommendedStock으로 변환 (null 가드 적용 리스트 사용)
+        List<PortfolioResponse.RecommendedStock> portfolioRecommendedStocks = safeStocks.stream()
                 .map(stock -> new PortfolioResponse.RecommendedStock(
                         stock.stockId(),
                         stock.stockName(),
