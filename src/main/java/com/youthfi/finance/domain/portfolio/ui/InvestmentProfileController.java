@@ -5,10 +5,8 @@ import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInve
 import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
-import com.youthfi.finance.domain.portfolio.application.mapper.PortfolioMapper;
 import com.youthfi.finance.domain.portfolio.application.usecase.InvestmentProfileUseCase;
 import com.youthfi.finance.domain.portfolio.application.usecase.PortfolioUseCase;
-import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
 import com.youthfi.finance.global.common.BaseResponse;
 import com.youthfi.finance.global.security.SecurityUtils;
 import com.youthfi.finance.global.swagger.BaseApi;
@@ -24,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 public class InvestmentProfileController implements BaseApi {
 
     private final InvestmentProfileUseCase investmentProfileUseCase;
-    private final PortfolioMapper portfolioMapper;
     private final PortfolioUseCase portfolioRecommendationUseCase;
 
     /**
@@ -85,8 +82,8 @@ public class InvestmentProfileController implements BaseApi {
     @PostMapping("/send-to-llm")
     public BaseResponse<PortfolioResponse> sendProfileToLLM() {
         String userId = SecurityUtils.getCurrentUserId();
-        Portfolio portfolio = portfolioRecommendationUseCase.generatePortfolioRecommendation(userId);
-        return BaseResponse.onSuccess(portfolioMapper.toPortfolioResponse(portfolio));
+        PortfolioResponse response = portfolioRecommendationUseCase.generateAiPortfolioRecommendation(userId);
+        return BaseResponse.onSuccess(response);
     }
 }
 

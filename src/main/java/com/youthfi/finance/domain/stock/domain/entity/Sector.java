@@ -44,4 +44,12 @@ public class Sector extends BaseEntity {
         this.sectorName = sectorName;
     }
 
+    // Lombok @Getter가 작동하지 않는 경우를 대비한 명시적 getter 메서드들
+    public Long getSectorId() {
+        return sectorId;
+    }
+
+    public String getSectorName() {
+        return sectorName;
+    }
 }

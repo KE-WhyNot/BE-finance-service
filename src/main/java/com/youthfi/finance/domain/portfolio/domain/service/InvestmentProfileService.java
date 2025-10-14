@@ -1,21 +1,23 @@
 package com.youthfi.finance.domain.portfolio.domain.service;
 
-import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
-import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfileSector;
-import com.youthfi.finance.domain.stock.domain.entity.Sector;
-import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileRepository;
-import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileSectorRepository;
-import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
-import com.youthfi.finance.domain.user.domain.repository.UserRepository;
-import com.youthfi.finance.global.exception.PortfolioException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfile;
+import com.youthfi.finance.domain.portfolio.domain.entity.InvestmentProfileSector;
+import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileRepository;
+import com.youthfi.finance.domain.portfolio.domain.repository.InvestmentProfileSectorRepository;
+import com.youthfi.finance.domain.stock.domain.entity.Sector;
+import com.youthfi.finance.domain.stock.domain.repository.SectorRepository;
+import com.youthfi.finance.domain.user.domain.entity.User;
+import com.youthfi.finance.domain.user.domain.repository.UserRepository;
+import com.youthfi.finance.global.exception.PortfolioException;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -123,6 +125,36 @@ public class InvestmentProfileService {
 
             investmentProfileSectorRepository.save(investmentProfileSector);
         }
+    }
+
+    /**
+     * InvestmentProfile 엔터티를 InvestmentProfileResponse DTO로 변환
+     */
+    public InvestmentProfileResponse toInvestmentProfileResponse(InvestmentProfile investmentProfile) {
+        if (investmentProfile == null) {
+            return null;
+        }
+        
+        // 관심섹터 정보 변환
+        List<String> interestedSectors = Optional.ofNullable(investmentProfile.getInvestmentProfileSectors())
+                .orElse(java.util.Collections.emptyList())
+                .stream()
+                .map(ips -> ips.getSector().getSectorName())
+                .collect(java.util.stream.Collectors.toList());
+        
+        return new InvestmentProfileResponse(
+                investmentProfile.getProfileId(),
+                investmentProfile.getUser().getUserId(),
+                investmentProfile.getInvestmentProfile(),
+                investmentProfile.getAvailableAssets(),
+                investmentProfile.getInvestmentGoal(),
+                investmentProfile.getLossTolerance(),
+                investmentProfile.getFinancialKnowledge(),
+                investmentProfile.getExpectedProfit(),
+                interestedSectors,
+                investmentProfile.getCreatedAt(),
+                investmentProfile.getUpdatedAt()
+        );
     }
 
 }
