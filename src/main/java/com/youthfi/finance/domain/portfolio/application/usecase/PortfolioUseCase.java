@@ -43,9 +43,12 @@ public class PortfolioUseCase {
 
         // 2. LLM API 호출하여 CompleteInvestmentProfileResponse 받음
         InvestmentProfileResponse profileResponse = investmentProfileService.toInvestmentProfileResponse(investmentProfile);
-        CompleteInvestmentProfileResponse llmResponse = llmApiClient.requestPortfolioRecommendation(profileResponse);
+        Map<String, Object> aiResponse = llmApiClient.requestPortfolioRecommendation(profileResponse);
+        
+        // 3. AI 응답을 CompleteInvestmentProfileResponse로 변환
+        CompleteInvestmentProfileResponse llmResponse = convertAiResponseToCompleteInvestmentProfileResponse(aiResponse);
 
-        // 3. 위험도 분석 수행 (null 가드)
+        // 4. 위험도 분석 수행 (null 가드)
         List<CompleteInvestmentProfileResponse.RecommendedStock> safeStocks =
                 java.util.Optional.ofNullable(llmResponse.recommendedStocks())
                         .orElse(java.util.Collections.emptyList());
@@ -124,6 +127,49 @@ public class PortfolioUseCase {
                         "stockCount", portfolioStockService.getStockCountByPortfolioId(portfolio.getPortfolioId())
                 ))
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * AI 서비스 응답을 CompleteInvestmentProfileResponse로 변환
+     */
+    private CompleteInvestmentProfileResponse convertAiResponseToCompleteInvestmentProfileResponse(Map<String, Object> aiResponse) {
+        // result 필드에서 실제 데이터 추출
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = (Map<String, Object>) aiResponse.get("result");
+        
+        if (result == null) {
+            throw new RuntimeException("AI 응답에서 result 필드를 찾을 수 없습니다");
+        }
+        
+        // RecommendedStock 변환
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> recommendedStocksData = (List<Map<String, Object>>) result.get("recommendedStocks");
+        List<CompleteInvestmentProfileResponse.RecommendedStock> recommendedStocks = 
+            recommendedStocksData != null ? 
+            recommendedStocksData.stream()
+                .map(stockData -> new CompleteInvestmentProfileResponse.RecommendedStock(
+                    (String) stockData.get("stockId"),
+                    (String) stockData.get("stockName"),
+                    java.math.BigDecimal.valueOf(((Number) stockData.get("allocationPct")).intValue()),
+                    (String) stockData.get("sectorName"),
+                    (String) stockData.get("reason")
+                ))
+                .toList() : 
+            java.util.Collections.emptyList();
+        
+        // allocationSavings 변환 (Integer -> BigDecimal)
+        java.math.BigDecimal allocationSavings = result.get("allocationSavings") != null ? 
+            java.math.BigDecimal.valueOf(((Number) result.get("allocationSavings")).intValue()) : 
+            java.math.BigDecimal.ZERO;
+        
+        return new CompleteInvestmentProfileResponse(
+            ((Number) result.get("portfolioId")).longValue(),
+            (String) result.get("userId"),
+            recommendedStocks,
+            allocationSavings,
+            java.time.ZonedDateTime.parse((String) result.get("createdAt")).toLocalDateTime(),
+            java.time.ZonedDateTime.parse((String) result.get("updatedAt")).toLocalDateTime()
+        );
     }
 }
 
