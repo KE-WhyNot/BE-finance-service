@@ -15,11 +15,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -120,13 +123,143 @@ public class KisChartApiClient {
             String accessToken = kisTokenService.getValidToken(appkey, appsecret);
             
             HttpHeaders headers = createHeaders(accessToken, appkey, appsecret, KisApiEndpoints.MINUTE_CHART_TR_ID);
-            String url = buildMinuteChartUrl(stockCode);
-            
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<Map> response = restTemplate.exchange(
-                url, HttpMethod.GET, entity, Map.class);
-            
-            return parseChartResponse(stockCode, "1min", "today", response);
+
+            // Asia/Seoul 기준으로 오늘 09:00부터 현재 직전 분까지 30개 단위 페이징 수집
+            ZoneId KST = ZoneId.of("Asia/Seoul");
+            LocalDate today = LocalDate.now(KST);
+            String todayStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nowHHmmss = LocalDateTime.now(KST).format(DateTimeFormatter.ofPattern("HHmmss"));
+            // 장 종료 시간(15:30:00) 초과 수집 방지: 세션 종료 상한을 15:30:00으로 캡
+            String sessionCloseHHmmss = "153000";
+            String sessionEndHHmmss = (nowHHmmss.compareTo(sessionCloseHHmmss) > 0) ? sessionCloseHHmmss : nowHHmmss;
+
+            String startHHmmss = "090000";
+            String lastFetchedHHmm = null; // HHmm 기준
+            List<Map<String, Object>> allItems = new ArrayList<>();
+
+            int safety = 0; // 무한루프 방지
+            int rateLimitRetries = 0;
+            while (safety++ < 240) { // 최대 240분(4시간 분량) 안전 한도
+                String url = buildMinuteChartUrl(stockCode, startHHmmss);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                ResponseEntity<Map> response;
+                try {
+                    response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+                } catch (HttpServerErrorException e) {
+                    String body = e.getResponseBodyAsString();
+                    if (body != null && body.contains("EGW00201")) { // 초당 거래건수 초과
+                        // 레이트리밋 백오프 후 재시도
+                        if (rateLimitRetries++ < 3) {
+                            try { Thread.sleep(1200); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                            continue;
+                        }
+                    }
+                    throw e;
+                }
+                Map<String, Object> body = response.getBody();
+                if (body == null || !"0".equals(String.valueOf(body.get("rt_cd")))) {
+                    break;
+                }
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("output2");
+                if (items == null || items.isEmpty()) {
+                    break;
+                }
+
+                // 오늘 데이터만 누적, 중복/역행 제거
+                String maxHHmm = lastFetchedHHmm;
+                for (Map<String, Object> item : items) {
+                    String dateStr = asString(item.get("stck_bsop_date"));
+                    if (!todayStr.equals(dateStr)) continue;
+                    String rawHour = asString(item.get("stck_cntg_hour"));
+                    String hhmm = normalizeToHHmm(rawHour);
+                    log.debug("[MINUTE-PAGE] date={}, rawHour={}, hhmm={}, lastFetchedHHmm={}, startHHmmss={}",
+                            dateStr, rawHour, hhmm, lastFetchedHHmm, startHHmmss);
+                    if (hhmm == null) continue;
+                    if (lastFetchedHHmm != null && hhmm.compareTo(lastFetchedHHmm) <= 0) continue;
+                    allItems.add(item);
+                    if (maxHHmm == null || hhmm.compareTo(maxHHmm) > 0) {
+                        maxHHmm = hhmm;
+                    }
+                }
+
+                if (maxHHmm == null) {
+                    // 아직 오늘 데이터가 없는 경우(개장 전 등)
+                    break;
+                }
+
+                lastFetchedHHmm = maxHHmm;
+                String candidateNext = toPlus30MinEndOfMinuteHHmmss(maxHHmm);
+                // 다음 호출 상한을 장마감 15:30:00으로 캡핑
+                startHHmmss = (candidateNext.compareTo(sessionEndHHmmss) > 0) ? sessionEndHHmmss : candidateNext;
+                log.debug("[MINUTE-NEXT] maxHHmm={}, candidateNext={}, nextStartHHmmss(capped)= {}, sessionEndHHmmss={}", maxHHmm, candidateNext, startHHmmss, sessionEndHHmmss);
+
+                // 이미 15:30에 도달했거나 초과했다면 루프 종료 (HHmm 기준)
+                if (maxHHmm.compareTo("1530") >= 0) {
+                    break;
+                }
+
+                // 현재 직전 분을 초과하면 종료
+                // 개별 페이지 간 레이트리밋 보호
+
+                // KIS 레이트리밋 보호를 위한 소량 지연
+                try { Thread.sleep(300); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+            }
+
+            // 파싱/정렬 및 볼륨 계산
+            List<CandleDataResponse> candles = new ArrayList<>();
+            allItems.sort((a, b) -> {
+                String ta = asString(a.get("stck_cntg_hour"));
+                String tb = asString(b.get("stck_cntg_hour"));
+                return ta.compareTo(tb);
+            });
+
+            Long prevAcmlVol = null;
+            String lastDateForDiff = null;
+            for (Map<String, Object> item : allItems) {
+                String dateStr = asString(item.get("stck_bsop_date"));
+                String timeStr = asString(item.get("stck_cntg_hour")); // HHmm
+                String openStr = asString(item.get("stck_oprc"));
+                String highStr = asString(item.get("stck_hgpr"));
+                String lowStr = asString(item.get("stck_lwpr"));
+                String closeStr = asString(item.get("stck_prpr"));
+                String cntgVolStr = asString(item.get("cntg_vol"));
+                String acmlVolStr = asString(item.get("acml_vol"));
+
+                if (lastDateForDiff == null || !lastDateForDiff.equals(dateStr)) {
+                    prevAcmlVol = null;
+                    lastDateForDiff = dateStr;
+                }
+
+                Long volumeVal;
+                Long cntgVol = parseLongOrZero(cntgVolStr);
+                if (cntgVol != null && cntgVol > 0) {
+                    volumeVal = cntgVol;
+                } else {
+                    Long acmlVol = parseLongOrZero(acmlVolStr);
+                    if (acmlVol != null && prevAcmlVol != null && acmlVol >= prevAcmlVol) {
+                        volumeVal = acmlVol - prevAcmlVol;
+                    } else {
+                        volumeVal = 0L;
+                    }
+                    if (acmlVolStr != null) {
+                        prevAcmlVol = parseLongOrZero(acmlVolStr);
+                    }
+                }
+
+                candles.add(CandleDataResponse.of(
+                        dateStr,
+                        formatHHmm(timeStr),
+                        openStr,
+                        highStr,
+                        lowStr,
+                        closeStr,
+                        String.valueOf(volumeVal)
+                ));
+            }
+
+            return new ChartDataResponse(stockCode, "1min", "today", candles,
+                    LocalDateTime.now(KST).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             
         } catch (Exception e) {
             log.error("분봉 데이터 조회 실패: stockCode={}", stockCode, e);
@@ -173,11 +306,15 @@ public class KisChartApiClient {
     }
     
     private String buildMinuteChartUrl(String stockCode) {
+        return buildMinuteChartUrl(stockCode, "090000");
+    }
+
+    private String buildMinuteChartUrl(String stockCode, String startHHmmss) {
         return UriComponentsBuilder
             .fromHttpUrl(KisApiEndpoints.REAL_BASE_URL + KisApiEndpoints.MINUTE_CHART)
             .queryParam("fid_cond_mrkt_div_code", KisApiEndpoints.MARKET_CODE_KOSPI)
             .queryParam("fid_input_iscd", stockCode)
-            .queryParam("fid_input_hour_1", "090000")
+            .queryParam("fid_input_hour_1", startHHmmss)
             .queryParam("fid_pw_data_incu_yn", "Y")
             .queryParam("fid_etc_cls_code", "0")
             .toUriString();
@@ -189,6 +326,47 @@ public class KisChartApiClient {
     
     private String getTodayString() {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    private String toNextMinuteHHmmss(String hhmm) {
+        if (hhmm == null || hhmm.length() != 4) return "090000";
+        LocalDateTime base = LocalDate.now().atTime(
+                Integer.parseInt(hhmm.substring(0, 2)),
+                Integer.parseInt(hhmm.substring(2, 4))
+        );
+        LocalDateTime next = base.plus(1, ChronoUnit.MINUTES);
+        return next.format(DateTimeFormatter.ofPattern("HHmmss"));
+    }
+
+    private String toPlus30MinEndOfMinuteHHmmss(String hhmm) {
+        if (hhmm == null || hhmm.length() != 4) return "090000";
+        LocalDateTime base = LocalDate.now().atTime(
+                Integer.parseInt(hhmm.substring(0, 2)),
+                Integer.parseInt(hhmm.substring(2, 4))
+        );
+        LocalDateTime next = base.plus(30, ChronoUnit.MINUTES);
+        return next.format(DateTimeFormatter.ofPattern("HHmm")) + "59"; // 해당 분의 끝초
+    }
+
+    private String formatHHmm(String hhmm) {
+        if (hhmm == null || hhmm.length() != 4) return hhmm;
+        return hhmm.substring(0, 2) + ":" + hhmm.substring(2, 4);
+    }
+
+    private String normalizeToHHmm(String raw) {
+        if (raw == null) return null;
+        String s = raw.trim();
+        if (s.length() >= 4) {
+            return s.substring(0, 4); // HHMMSS -> HHMM
+        }
+        if (s.length() == 3) {
+            // e.g., 900 -> 0900
+            return ("000" + s).substring(s.length());
+        }
+        if (s.length() == 2) {
+            return s + "00";
+        }
+        return null;
     }
     
     @SuppressWarnings("unchecked")
