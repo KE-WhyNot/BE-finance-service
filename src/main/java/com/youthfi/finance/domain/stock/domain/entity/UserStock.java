@@ -1,9 +1,9 @@
 package com.youthfi.finance.domain.stock.domain.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.global.common.BaseEntity;
 import com.youthfi.finance.global.exception.StockException;
 
 import jakarta.persistence.Column;
@@ -19,12 +19,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "userstock")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserStock extends BaseEntity {
+public class UserStock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,6 +53,14 @@ public class UserStock extends BaseEntity {
 
     @Column(name = "totalValue", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalValue; // 총 평가금액
+
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp @Column(name = "updatedAt", columnDefinition = "TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
+
 
     @Builder
     public UserStock(User user, Stock stock, Sector sector, Long holdingQuantity, 

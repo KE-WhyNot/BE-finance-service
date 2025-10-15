@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,12 +18,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "execution")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Execution extends BaseEntity {
+public class Execution {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,6 +58,13 @@ public class Execution extends BaseEntity {
 
     @Column(name = "totalPrice", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalPrice; // 거래총액
+
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp @Column(name = "updatedAt", columnDefinition = "TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
 
 
     @Builder
