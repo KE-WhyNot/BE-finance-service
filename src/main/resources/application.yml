@@ -29,6 +29,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
@@ -39,6 +40,11 @@ spring:
         order_inserts: true
         order_updates: true
     open-in-view: false
+  
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
   
 
   # ===========================================
