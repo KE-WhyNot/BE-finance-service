@@ -34,9 +34,6 @@ public class GcpAuthenticationService {
             
             // 1. GCP_SA_KEY_JSON 환경변수 우선 확인
             String envKeyJson = System.getenv("GCP_SA_KEY_JSON");
-            if (envKeyJson != null && envKeyJson.length() >= 2 && envKeyJson.startsWith("\"") && envKeyJson.endsWith("\"")) {
-                envKeyJson = envKeyJson.substring(1, envKeyJson.length() - 1);
-            }
             if (envKeyJson != null && !envKeyJson.isBlank()) {
                 log.info("GCP_SA_KEY_JSON 환경변수 사용");
                 credentials = GoogleCredentials.fromStream(
