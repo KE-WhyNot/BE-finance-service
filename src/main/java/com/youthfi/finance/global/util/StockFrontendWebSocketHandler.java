@@ -15,7 +15,7 @@ public class StockFrontendWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessions.add(session);
-        log.info("WebSocket 연결 성공: sessionId={}", session.getId());
+        log.info("WebSocket 연결 성공: sessionId={}, origin={}", session.getId(), session.getHandshakeHeaders().getOrigin());
     }
 
     @Override
