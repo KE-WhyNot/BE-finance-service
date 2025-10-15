@@ -18,7 +18,7 @@ public interface ExecutionRepository extends JpaRepository<Execution, Long> {
     List<Execution> findByUserUserIdAndStockStockIdOrderByExecutedAtDesc(String userId, String stockId);
     
     // 매수/매도별 거래내역
-    List<Execution> findByUserUserIdAndExecutionTypeOrderByExecutedAtDesc(String userId, Execution.ExecutionType executionType);
+    List<Execution> findByUserUserIdAndIsBuyOrderByExecutedAtDesc(String userId, Integer isBuy);
     
     // 특정 섹터 거래내역
     List<Execution> findByUserUserIdAndSectorSectorIdOrderByExecutedAtDesc(String userId, Long sectorId);

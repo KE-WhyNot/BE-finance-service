@@ -24,7 +24,7 @@ public class StockMapper {
                 execution.getUser().getUserId(),
                 execution.getStock().getStockId(),
                 execution.getStock().getStockName(),
-                execution.getExecutionType().name(),
+                execution.getIsBuy() == 1 ? "BUY" : "SELL",
                 execution.getQuantity().intValue(),
                 execution.getPrice(),
                 execution.getTotalPrice(),

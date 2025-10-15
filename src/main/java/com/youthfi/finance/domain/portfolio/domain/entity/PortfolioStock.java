@@ -27,18 +27,18 @@ public class PortfolioStock extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "portfolio_stock_id")
+    @Column(name = "portfolioStockId")
     private Long portfolioStockId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "portfolio_id", nullable = false)
+    @JoinColumn(name = "portfolioId", nullable = false)
     private Portfolio portfolio;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id", nullable = false)
+    @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
 
-    @Column(name = "allocation_pct", nullable = false, precision = 5, scale = 2)
+    @Column(name = "allocationPct", nullable = false, precision = 5, scale = 2)
     private BigDecimal allocationPct;
 
     @Builder

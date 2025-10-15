@@ -21,35 +21,35 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "user_stocks")
+@Table(name = "userstock")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserStock extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_stock_id")
+    @Column(name = "userStockId")
     private Long userStockId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id", nullable = false)
+    @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
+    @JoinColumn(name = "sectorId", nullable = false)
     private Sector sector;
 
-    @Column(name = "holding_quantity", nullable = false)
+    @Column(name = "holdingQuantity", nullable = false)
     private Long holdingQuantity; // 보유수량
 
-    @Column(name = "avg_price", nullable = false, precision = 15, scale = 2)
+    @Column(name = "avgPrice", nullable = false, precision = 15, scale = 2)
     private BigDecimal avgPrice; // 평균 매입가
 
-    @Column(name = "total_value", nullable = false, precision = 15, scale = 2)
+    @Column(name = "totalValue", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalValue; // 총 평가금액
 
     @Builder

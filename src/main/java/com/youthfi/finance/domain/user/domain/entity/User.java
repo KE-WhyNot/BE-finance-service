@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 public class User extends BaseEntity {
 
     @Id
-    @Column(name = "user_id", length = 50)
+    @Column(name = "userId", length = 50)
     private String userId;
 
     @Column(name = "balance", nullable = false, precision = 15, scale = 2)

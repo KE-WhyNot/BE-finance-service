@@ -64,7 +64,7 @@ public class TradingService {
                 .stock(stock)
                 .sector(stock.getSector())
                 .executedAt(LocalDateTime.now())
-                .executionType(Execution.ExecutionType.BUY)
+                .isBuy(1) // 매수
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
@@ -114,7 +114,7 @@ public class TradingService {
                 .stock(stock)
                 .sector(stock.getSector())
                 .executedAt(LocalDateTime.now())
-                .executionType(Execution.ExecutionType.SELL)
+                .isBuy(0) // 매도
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
@@ -170,8 +170,8 @@ public class TradingService {
      * 매수/매도별 거래 내역 조회 
      */
     public List<Execution> getExecutionsByUserIdAndIsBuy(String userId, boolean isBuy) {
-        return executionRepository.findByUserUserIdAndExecutionTypeOrderByExecutedAtDesc(userId, 
-                isBuy ? Execution.ExecutionType.BUY : Execution.ExecutionType.SELL);
+        return executionRepository.findByUserUserIdAndIsBuyOrderByExecutedAtDesc(userId, 
+                isBuy ? 1 : 0);
     }
 
     /**
