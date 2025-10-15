@@ -62,6 +62,9 @@ public class Execution {
     @Column(name = "stockNameSnapshot", length = 100)
     private String stockNameSnapshot; // 거래 시점 종목명 스냅샷
 
+    @Column(name = "user_balance_snapshot", precision = 15, scale = 2)
+    private BigDecimal userBalanceSnapshot; // 거래 시점 사용자 잔고 스냅샷
+
     @CreationTimestamp
     @Column(name = "createdAt", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -72,7 +75,7 @@ public class Execution {
 
     @Builder
     public Execution(User user, Stock stock, Sector sector, LocalDateTime executedAt, 
-    Integer isBuy, Long quantity, BigDecimal price, BigDecimal totalPrice, String stockNameSnapshot) {
+    Integer isBuy, Long quantity, BigDecimal price, BigDecimal totalPrice, String stockNameSnapshot, BigDecimal userBalanceSnapshot) {
         this.user = user;
         this.stock = stock;
         this.sector = sector;
@@ -82,6 +85,7 @@ public class Execution {
         this.price = price;
         this.totalPrice = totalPrice;
         this.stockNameSnapshot = stockNameSnapshot;
+        this.userBalanceSnapshot = userBalanceSnapshot;
 }
     // ==================== 편의 메서드 ====================
     

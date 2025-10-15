@@ -28,6 +28,7 @@ public class UserStockUseCase {
 
         List<UserStock> userStocks = userStockService.getUserStocksByUserId(userId);
         List<UserHoldingResponse> responses = userStocks.stream()
+                .filter(us -> us.getHoldingQuantity() > 0) // 보유 수량이 0보다 큰 종목만 필터링
                 .map(us -> new UserHoldingResponse(
                         us.getUserStockId(),
                         us.getStock().getStockId(),
