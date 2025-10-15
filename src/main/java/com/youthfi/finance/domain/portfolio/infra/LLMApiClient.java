@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.youthfi.finance.domain.ai.infra.GcpAuthenticationService;
-import com.youthfi.finance.domain.portfolio.application.dto.response.CompleteInvestmentProfileResponse;
 import com.youthfi.finance.domain.portfolio.application.dto.response.InvestmentProfileResponse;
 import com.youthfi.finance.global.config.properties.LLMApiProperties;
 import com.youthfi.finance.global.exception.PortfolioException;
@@ -29,8 +28,9 @@ public class LLMApiClient {
 
     /**
      * 투자성향 프로필을 AI 서비스로 전송하여 포트폴리오 추천 요청
+     * AI 서비스의 원시 응답을 Map으로 반환
      */
-    public CompleteInvestmentProfileResponse requestPortfolioRecommendation(InvestmentProfileResponse investmentProfile) {
+    public java.util.Map<String, Object> requestPortfolioRecommendation(InvestmentProfileResponse investmentProfile) {
         try {
             log.info("AI 서비스로 투자성향 프로필 전송 시작: profileId={}", investmentProfile.profileId());
 
@@ -54,25 +54,17 @@ public class LLMApiClient {
 
             HttpEntity<java.util.Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
-            ResponseEntity<CompleteInvestmentProfileResponse> response = restTemplate.exchange(
+            ResponseEntity<java.util.Map> response = restTemplate.exchange(
                     llmApiProperties.getApi().getUrl(),
                     HttpMethod.POST,
                     request,
-                    CompleteInvestmentProfileResponse.class
+                    java.util.Map.class
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                CompleteInvestmentProfileResponse body = response.getBody();
-                java.util.List<CompleteInvestmentProfileResponse.RecommendedStock> stocks = body.recommendedStocks();
-                int stockCount = stocks == null ? 0 : stocks.size();
-                log.info("AI 응답 성공: profileId={}, 종목수={}, 예적금 비율={}",
-                        investmentProfile.profileId(), stockCount, body.allocationSavings());
-                if (stockCount > 0) {
-                    CompleteInvestmentProfileResponse.RecommendedStock first = stocks.get(0);
-                    log.debug("AI 응답 샘플[0]: stockId={}, name={}, allocationPct={}",
-                            first.stockId(), first.stockName(), first.allocationPct());
-                }
-                return body;
+                java.util.Map<String, Object> aiResponse = response.getBody();
+                log.info("AI 응답 성공: profileId={}, 응답={}", investmentProfile.profileId(), aiResponse);
+                return aiResponse;
             } else {
                 log.error("AI 응답 실패: status={}, profileId={}", response.getStatusCode(), investmentProfile.profileId());
                 throw PortfolioException.llmApiConnectionFailed(new RuntimeException("AI API 호출 실패: " + response.getStatusCode()));
