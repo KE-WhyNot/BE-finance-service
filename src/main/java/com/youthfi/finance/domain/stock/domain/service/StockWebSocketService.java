@@ -8,6 +8,7 @@ import com.youthfi.finance.global.config.properties.KisApiEndpoints;
 import com.youthfi.finance.global.config.properties.KisApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import com.youthfi.finance.global.util.StockFrontendWebSocketHandler;
 
 import java.net.URI;
@@ -94,5 +95,42 @@ public class StockWebSocketService {
      */
     public int getActiveConnectionCount() {
         return clients.size();
+    }
+
+    /**
+     * 주기적으로 모든 세션을 롤링 재시작 (10분)
+     * 기존 구독 종목 리스트를 그대로 사용하고, approval key는 최신으로 갱신
+     */
+    @Scheduled(fixedDelay = 600_000L, initialDelay = 600_000L)
+    public void rollingRestartWebSockets() {
+        if (clients.isEmpty()) {
+            return;
+        }
+        List<StockWebSocketClient> snapshot = new ArrayList<>(clients);
+        clients.clear();
+        for (StockWebSocketClient oldClient : snapshot) {
+            try {
+                oldClient.close();
+            } catch (Exception ignored) {}
+            try {
+                String appkey = oldClient.getAppkey();
+                String appsecret = kisApiProperties.getKeys().stream()
+                        .filter(k -> k.getAppkey().equals(appkey))
+                        .findFirst()
+                        .map(KisApiProperties.KisKey::getAppsecret)
+                        .orElse("");
+                String approvalKey = approvalKeyManager.getApprovalKey(appkey, appsecret);
+                URI uri = new URI(KisApiEndpoints.WEBSOCKET_URL);
+                StockWebSocketClient newClient = new StockWebSocketClient(
+                        uri, appkey, approvalKey, oldClient.getTrId(), oldClient.getTrKeys(),
+                        this::handleIncomingMessage
+                );
+                newClient.connect();
+                clients.add(newClient);
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // 개별 세션 실패는 다음 루프로 계속
+            }
+        }
     }
 }
