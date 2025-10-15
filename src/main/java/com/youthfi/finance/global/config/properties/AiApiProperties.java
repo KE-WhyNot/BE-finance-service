@@ -26,11 +26,30 @@ public class AiApiProperties {
     
     @PostConstruct
     public void init() {
+        // 환경변수가 있으면 우선 사용, 없으면 설정 파일 값 사용
+        String envBaseUrl = System.getenv("AI_BASE_URL");
+        if (envBaseUrl != null && !envBaseUrl.isBlank()) {
+            this.baseUrl = envBaseUrl;
+        }
+        
         System.out.println("AiApiProperties 초기화 완료");
         System.out.println("Base URL: " + baseUrl);
         System.out.println("Chatbot URL: " + (chatbot != null ? chatbot.getApiUrl() : "null"));
         System.out.println("Portfolio URL: " + (portfolio != null ? portfolio.getApiUrl() : "null"));
         System.out.println("GCP Target Audience: " + (gcp != null ? gcp.getTargetAudience() : "null"));
+    }
+    
+    private String getEnv(String name, String defaultValue) {
+        String value = System.getenv(name);
+        return (value != null && !value.isBlank()) ? value : defaultValue;
+    }
+    
+    private String getRequiredEnv(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("필수 환경변수가 설정되지 않았습니다: " + name);
+        }
+        return value;
     }
 
     @Getter
@@ -101,12 +120,36 @@ public class AiApiProperties {
     public static class Gcp {
         private ServiceAccount serviceAccount = new ServiceAccount();
         private String targetAudience;
+        
+        public String getTargetAudience() {
+            if (targetAudience == null || targetAudience.trim().isEmpty()) {
+                String value = System.getenv("AI_TARGET_AUDIENCE");
+                return (value != null && !value.isBlank()) ? value : targetAudience;
+            }
+            return targetAudience;
+        }
 
         @Getter
         @Setter
         public static class ServiceAccount {
             private String key;
             private String email;
+            
+            public String getKey() {
+                if (key == null || key.trim().isEmpty()) {
+                    String value = System.getenv("GCP_SA_KEY_JSON");
+                    return (value != null && !value.isBlank()) ? value : key;
+                }
+                return key;
+            }
+            
+            public String getEmail() {
+                if (email == null || email.trim().isEmpty()) {
+                    String value = System.getenv("AI_GCP_SERVICE_ACCOUNT_EMAIL");
+                    return (value != null && !value.isBlank()) ? value : email;
+                }
+                return email;
+            }
         }
     }
 }
