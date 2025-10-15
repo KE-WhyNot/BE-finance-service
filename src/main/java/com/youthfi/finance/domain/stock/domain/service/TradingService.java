@@ -68,6 +68,7 @@ public class TradingService {
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
+                .stockNameSnapshot(stock.getStockName())
                 .build();
         Execution saved = executionRepository.save(execution);
 
@@ -118,6 +119,7 @@ public class TradingService {
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
+                .stockNameSnapshot(stock.getStockName())
                 .build();
         Execution saved = executionRepository.save(execution);
 
