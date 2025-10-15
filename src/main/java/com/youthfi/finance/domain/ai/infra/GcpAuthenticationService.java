@@ -31,23 +31,35 @@ public class GcpAuthenticationService {
         try {
             log.info("GCP ID 토큰 발급 시작");
             GoogleCredentials credentials;
-            String key = aiApiProperties.getGcp().getServiceAccount().getKey();
-
-            if (key != null && !key.isBlank()) {
-                // JSON 파일 경로인지 JSON 문자열인지 확인
-                if (key.startsWith("classpath:") || key.startsWith("file:") || key.endsWith(".json")) {
-                    // 파일 경로인 경우
-                    InputStream keyStream = getKeyStream(key);
-                    credentials = GoogleCredentials.fromStream(keyStream);
-                } else {
-                    // JSON 문자열인 경우
-                    credentials = GoogleCredentials.fromStream(
-                            new ByteArrayInputStream(key.getBytes(StandardCharsets.UTF_8))
-                    );
-                }
+            
+            // 1. GCP_SA_KEY_JSON 환경변수 우선 확인
+            String envKeyJson = System.getenv("GCP_SA_KEY_JSON");
+            if (envKeyJson != null && !envKeyJson.isBlank()) {
+                log.info("GCP_SA_KEY_JSON 환경변수 사용");
+                credentials = GoogleCredentials.fromStream(
+                        new ByteArrayInputStream(envKeyJson.getBytes(StandardCharsets.UTF_8))
+                );
             } else {
-                // 키 미설정 시 ADC (Application Default Credentials) 사용
-                credentials = GoogleCredentials.getApplicationDefault();
+                // 2. 설정 파일의 키 사용
+                String key = aiApiProperties.getGcp().getServiceAccount().getKey();
+                if (key != null && !key.isBlank()) {
+                    log.info("설정 파일의 키 사용");
+                    // JSON 파일 경로인지 JSON 문자열인지 확인
+                    if (key.startsWith("classpath:") || key.startsWith("file:") || key.endsWith(".json")) {
+                        // 파일 경로인 경우
+                        InputStream keyStream = getKeyStream(key);
+                        credentials = GoogleCredentials.fromStream(keyStream);
+                    } else {
+                        // JSON 문자열인 경우
+                        credentials = GoogleCredentials.fromStream(
+                                new ByteArrayInputStream(key.getBytes(StandardCharsets.UTF_8))
+                        );
+                    }
+                } else {
+                    // 3. 키 미설정 시 ADC (Application Default Credentials) 사용
+                    log.info("ADC 사용");
+                    credentials = GoogleCredentials.getApplicationDefault();
+                }
             }
 
             if (credentials instanceof IdTokenProvider idTokenProvider) {
