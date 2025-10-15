@@ -27,18 +27,18 @@ import lombok.NoArgsConstructor;
 public class Stock extends BaseEntity {
 
     @Id
-    @Column(name = "stock_id", length = 10)
+    @Column(name = "stockId", length = 10)
     private String stockId; // 종목코드
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
+    @JoinColumn(name = "sectorId", nullable = false)
     private Sector sector;
 
-    @Column(name = "stock_name", nullable = false, length = 100)
+    @Column(name = "stockName", nullable = false, length = 100)
     private String stockName;
 
 
-    @Column(name = "stock_image", length = 500)
+    @Column(name = "stockImage", length = 500)
     private String stockImage;
 
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)

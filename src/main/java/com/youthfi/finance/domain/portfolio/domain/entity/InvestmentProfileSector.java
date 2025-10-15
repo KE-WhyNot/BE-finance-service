@@ -29,11 +29,11 @@ public class InvestmentProfileSector extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id", nullable = false)
+    @JoinColumn(name = "profileId", nullable = false)
     private InvestmentProfile investmentProfile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
+    @JoinColumn(name = "sectorId", nullable = false)
     private Sector sector;
 
     @Builder

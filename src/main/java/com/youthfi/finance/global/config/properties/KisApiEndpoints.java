@@ -15,7 +15,6 @@ public class KisApiEndpoints {
     public static final String STOCK_CURRENT_PRICE = DOMESTIC_STOCK_BASE + "/quotations/inquire-price";
     public static final String STOCK_CURRENT_PRICE_TR_ID = "FHKST01010100";
     
-    
     // API 카테고리
     public static final String DOMESTIC_STOCK = "국내주식";
     

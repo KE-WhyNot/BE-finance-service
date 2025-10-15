@@ -27,10 +27,10 @@ public class Sector extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sector_id")
+    @Column(name = "sectorId")
     private Long sectorId;
 
-    @Column(name = "sector_name", nullable = false, length = 100)
+    @Column(name = "sectorName", nullable = false, length = 100)
     private String sectorName;
 
     @OneToMany(mappedBy = "sector", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -31,20 +31,20 @@ public class Portfolio extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "portfolio_id")
+    @Column(name = "portfolioId")
     private Long portfolioId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    @Column(name = "portfolio_name", nullable = false, length = 100)
+    @Column(name = "portfolioName", nullable = false, length = 100)
     private String portfolioName;
 
-    @Column(name = "highest_value", precision = 18, scale = 2)
+    @Column(name = "highestValue", precision = 18, scale = 2)
     private BigDecimal highestValue;
 
-    @Column(name = "lowest_value", precision = 18, scale = 2)
+    @Column(name = "lowestValue", precision = 18, scale = 2)
     private BigDecimal lowestValue;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)

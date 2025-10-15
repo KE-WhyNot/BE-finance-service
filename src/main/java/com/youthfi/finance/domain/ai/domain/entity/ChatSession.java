@@ -26,7 +26,7 @@ public class ChatSession extends BaseEntity {
     @Column(name = "session_id")
     private Long sessionId;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "userId", nullable = false)
     private String userId;
 
     @Column(name = "session_uuid", nullable = false, unique = true)

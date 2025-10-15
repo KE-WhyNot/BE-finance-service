@@ -28,7 +28,7 @@ public class AiServiceLog extends BaseEntity {
     @Column(name = "log_id")
     private Long logId;
 
-    @Column(name = "user_id")
+    @Column(name = "userId")
     private String userId;
 
     @Column(name = "session_id")
