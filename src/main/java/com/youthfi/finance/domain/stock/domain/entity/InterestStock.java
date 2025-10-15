@@ -30,18 +30,18 @@ public class InterestStock extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id", nullable = false)
+    @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
+    @JoinColumn(name = "sectorId", nullable = false)
     private Sector sector;
 
-    @Column(name = "interest_flag", nullable = false)
+    @Column(name = "interestFlag", nullable = false)
     private Boolean interestFlag; // 관심 여부
 
     @Builder

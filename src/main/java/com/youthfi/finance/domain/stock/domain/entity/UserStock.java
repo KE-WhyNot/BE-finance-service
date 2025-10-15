@@ -1,9 +1,9 @@
 package com.youthfi.finance.domain.stock.domain.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.youthfi.finance.domain.user.domain.entity.User;
-import com.youthfi.finance.global.common.BaseEntity;
 import com.youthfi.finance.global.exception.StockException;
 
 import jakarta.persistence.Column;
@@ -19,38 +19,48 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "user_stocks")
+@Table(name = "userstock")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserStock extends BaseEntity {
+public class UserStock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_stock_id")
+    @Column(name = "userStockId")
     private Long userStockId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_id", nullable = false)
+    @JoinColumn(name = "stockId", nullable = false)
     private Stock stock;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
+    @JoinColumn(name = "sectorId", nullable = false)
     private Sector sector;
 
-    @Column(name = "holding_quantity", nullable = false)
+    @Column(name = "holdingQuantity", nullable = false)
     private Long holdingQuantity; // 보유수량
 
-    @Column(name = "avg_price", nullable = false, precision = 15, scale = 2)
+    @Column(name = "avgPrice", nullable = false, precision = 15, scale = 2)
     private BigDecimal avgPrice; // 평균 매입가
 
-    @Column(name = "total_value", nullable = false, precision = 15, scale = 2)
+    @Column(name = "totalValue", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalValue; // 총 평가금액
+
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp @Column(name = "updatedAt", columnDefinition = "TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
+
 
     @Builder
     public UserStock(User user, Stock stock, Sector sector, Long holdingQuantity, 

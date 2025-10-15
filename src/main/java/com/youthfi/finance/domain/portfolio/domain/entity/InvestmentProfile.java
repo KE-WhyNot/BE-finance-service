@@ -33,34 +33,34 @@ public class InvestmentProfile extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
+    @Column(name = "profileId")
     private Long profileId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "investment_profile", nullable = false, length = 20)
+    @Column(name = "investmentProfile", nullable = false, length = 20)
     private InvestmentProfileType investmentProfile;
 
-    @Column(name = "available_assets", nullable = false, precision = 15, scale = 2)
+    @Column(name = "availableAssets", nullable = false, precision = 15, scale = 2)
     private BigDecimal availableAssets;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "investment_goal", nullable = false, length = 20)
+    @Column(name = "investmentGoal", nullable = false, length = 20)
     private InvestmentGoal investmentGoal;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "loss_tolerance", nullable = false, length = 20)
+    @Column(name = "lossTolerance", nullable = false, length = 20)
     private LossTolerance lossTolerance;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "financial_knowledge", nullable = false, length = 20)
+    @Column(name = "financialKnowledge", nullable = false, length = 20)
     private FinancialKnowledge financialKnowledge;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "expected_profit", nullable = false, length = 20)
+    @Column(name = "expectedProfit", nullable = false, length = 20)
     private ExpectedProfit expectedProfit;
 
     @OneToMany(mappedBy = "investmentProfile", cascade = CascadeType.ALL, orphanRemoval = true)
