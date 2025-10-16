@@ -13,7 +13,7 @@ public record CompleteInvestmentProfileRequest(
     )
     InvestmentProfile.InvestmentProfileType investmentProfile,
 
-    @Schema(description = "투자가능 자산", example = "10000000.00")
+    @Schema(description = "투자가능 자산 (선택지: 50, 100, 200, 500, 1000) — 단위: 만원", example = "100", allowableValues = {"50", "100", "200", "500", "1000"})
     BigDecimal availableAssets,
 
     @Schema(description = "투자 목표", example = "EDUCATION", allowableValues = {"EDUCATION", "LIVING_EXPENSES", "HOUSE_PURCHASE", "ASSET_GROWTH", "DEBT_REPAYMENT"})

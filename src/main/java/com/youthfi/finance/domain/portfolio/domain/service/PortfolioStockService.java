@@ -31,7 +31,7 @@ public class PortfolioStockService {
      * 포트폴리오와 종목 존재 여부 확인, 배분 비율 유효성 검사를 수행합니다.
      */
     
-    public PortfolioStock addStockToPortfolio(Long portfolioId, String stockId, BigDecimal allocationPct) {
+    public PortfolioStock addStockToPortfolio(Long portfolioId, String stockId, BigDecimal allocationPct, String reason) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> PortfolioException.portfolioNotFound(portfolioId));
 
@@ -44,6 +44,7 @@ public class PortfolioStockService {
                 .portfolio(portfolio)
                 .stock(stock)
                 .allocationPct(allocationPct)
+                .reason(reason)
                 .build();
 
         return portfolioStockRepository.save(portfolioStock);

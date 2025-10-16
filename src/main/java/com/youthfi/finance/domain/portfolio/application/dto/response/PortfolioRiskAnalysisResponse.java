@@ -9,8 +9,7 @@ public record PortfolioRiskAnalysisResponse(
     BigDecimal currentValue,
     BigDecimal highestReturn,
     BigDecimal lowestReturn,
-    BigDecimal currentReturn,
-    String riskLevel
+    BigDecimal currentReturn
 ) {
     public static PortfolioRiskAnalysisResponse getDefault(BigDecimal investment) {
         return new PortfolioRiskAnalysisResponse(
@@ -20,8 +19,7 @@ public record PortfolioRiskAnalysisResponse(
             investment,
             BigDecimal.ZERO,
             BigDecimal.ZERO,
-            BigDecimal.ZERO,
-            "MEDIUM"
+            BigDecimal.ZERO
         );
     }
 }

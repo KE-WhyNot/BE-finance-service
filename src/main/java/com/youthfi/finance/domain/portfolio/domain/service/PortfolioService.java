@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.youthfi.finance.domain.portfolio.application.dto.response.PortfolioResponse;
 import com.youthfi.finance.domain.portfolio.domain.entity.Portfolio;
@@ -30,7 +31,7 @@ public class PortfolioService {
      */
 
     public Portfolio createPortfolio(String userId, String portfolioName,
-                                   BigDecimal highestValue, BigDecimal lowestValue) {
+                                   BigDecimal highestValue, BigDecimal lowestValue, BigDecimal allocationSavings) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> PortfolioException.userNotFound(userId));
 
@@ -39,6 +40,7 @@ public class PortfolioService {
                 .portfolioName(portfolioName)
                 .highestValue(highestValue)
                 .lowestValue(lowestValue)
+                .allocationSavings(allocationSavings)
                 .build();
         return portfolioRepository.save(portfolio);
     }
@@ -56,7 +58,7 @@ public class PortfolioService {
      */
 
     public List<Portfolio> findPortfoliosByUserId(String userId) {
-        return portfolioRepository.findByUserUserIdOrderByCreatedAtDesc(userId);
+        return portfolioRepository.findByUserUserIdWithStocksOrderByCreatedAtDesc(userId);
     }
 
     /**
@@ -65,11 +67,11 @@ public class PortfolioService {
      */
 
     public Portfolio updatePortfolio(Long portfolioId, String portfolioName,
-                                   BigDecimal highestValue, BigDecimal lowestValue) {
+                                   BigDecimal highestValue, BigDecimal lowestValue, BigDecimal allocationSavings) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> PortfolioException.portfolioNotFound(portfolioId));
 
-        portfolio.updatePortfolio(portfolioName, highestValue, lowestValue);
+        portfolio.updatePortfolio(portfolioName, highestValue, lowestValue, allocationSavings);
         return portfolio;
     }
 
@@ -83,17 +85,13 @@ public class PortfolioService {
                         ps.getStock().getStockName(),
                         ps.getAllocationPct(),
                         ps.getStock().getSector().getSectorName(),
-                        "AI 추천"
+                        ps.getReason() != null ? ps.getReason() : "AI 추천"
                 ))
                 .toList();
 
-        // 주식 배분 비율의 합계를 계산
-        BigDecimal totalStockAllocation = portfolio.getPortfolioStocks().stream()
-                .map(PortfolioStock::getAllocationPct)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // 예적금 비율 = 100% - 주식 배분 비율 합계
-        BigDecimal allocationSavings = BigDecimal.valueOf(100).subtract(totalStockAllocation);
+        BigDecimal allocationSavings = portfolio.getAllocationSavings() != null
+                ? portfolio.getAllocationSavings()
+                : BigDecimal.ZERO;
 
         return new PortfolioResponse(
                 portfolio.getPortfolioId(),

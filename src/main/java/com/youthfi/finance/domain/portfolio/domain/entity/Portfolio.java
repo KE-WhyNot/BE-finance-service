@@ -47,21 +47,26 @@ public class Portfolio extends BaseEntity {
     @Column(name = "lowestValue", precision = 18, scale = 2)
     private BigDecimal lowestValue;
 
+    @Column(name = "allocation_savings", precision = 5, scale = 2)
+    private BigDecimal allocationSavings;
+
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PortfolioStock> portfolioStocks = new ArrayList<>();
 
     @Builder
-    public Portfolio(User user, String portfolioName, BigDecimal highestValue, BigDecimal lowestValue) {
+    public Portfolio(User user, String portfolioName, BigDecimal highestValue, BigDecimal lowestValue, BigDecimal allocationSavings) {
         this.user = user;
         this.portfolioName = portfolioName;
         this.highestValue = highestValue;
         this.lowestValue = lowestValue;
+        this.allocationSavings = allocationSavings;
     }
 
-    public void updatePortfolio(String portfolioName, BigDecimal highestValue, BigDecimal lowestValue) {
+    public void updatePortfolio(String portfolioName, BigDecimal highestValue, BigDecimal lowestValue, BigDecimal allocationSavings) {
         this.portfolioName = portfolioName;
         this.highestValue = highestValue;
         this.lowestValue = lowestValue;
+        this.allocationSavings = allocationSavings;
     }
 
     // Lombok @Getter가 작동하지 않는 경우를 대비한 명시적 getter 메서드들
