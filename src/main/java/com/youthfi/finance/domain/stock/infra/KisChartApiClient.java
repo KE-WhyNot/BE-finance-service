@@ -196,6 +196,14 @@ public class KisChartApiClient {
 
                 // 이미 15:30에 도달했거나 초과했다면 루프 종료 (HHmm 기준)
                 if (maxHHmm.compareTo("1530") >= 0) {
+                    log.debug("[MINUTE-END] Market close reached: maxHHmm={}", maxHHmm);
+                    break;
+                }
+                
+                // 현재 시간을 초과했다면 루프 종료 (1분 여유를 둠)
+                String currentHHmm = LocalDateTime.now(KST).minusMinutes(1).format(DateTimeFormatter.ofPattern("HHmm"));
+                if (maxHHmm.compareTo(currentHHmm) >= 0) {
+                    log.debug("[MINUTE-END] Current time reached: maxHHmm={}, currentHHmm={}", maxHHmm, currentHHmm);
                     break;
                 }
 

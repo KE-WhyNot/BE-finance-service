@@ -106,15 +106,21 @@ public class InvestmentProfileService {
     
     public void addInterestedSectors(InvestmentProfile investmentProfile, List<String> sectorNames) {
         if (sectorNames == null || sectorNames.isEmpty()) {
+            // 빈 리스트인 경우 기존 섹터들 모두 삭제
+            investmentProfile.getInvestmentProfileSectors().clear();
             return;
         }
 
-        // 기존 관심섹터 삭제
-        List<InvestmentProfileSector> existingSectors = investmentProfileSectorRepository.findByInvestmentProfile(investmentProfile);
-        investmentProfileSectorRepository.deleteAll(existingSectors);
+        // 중복 제거
+        List<String> uniqueSectorNames = sectorNames.stream()
+                .distinct()
+                .toList();
+
+        // 기존 섹터들 모두 삭제 (JPA orphanRemoval이 자동 처리)
+        investmentProfile.getInvestmentProfileSectors().clear();
 
         // 새로운 관심섹터 추가
-        for (String sectorName : sectorNames) {
+        for (String sectorName : uniqueSectorNames) {
             Sector sector = sectorRepository.findBySectorName(sectorName)
                     .orElseThrow(() -> PortfolioException.sectorNotFound(sectorName));
 
@@ -123,7 +129,8 @@ public class InvestmentProfileService {
                     .sector(sector)
                     .build();
 
-            investmentProfileSectorRepository.save(investmentProfileSector);
+            // JPA 컬렉션에 직접 추가 (cascade로 자동 저장)
+            investmentProfile.getInvestmentProfileSectors().add(investmentProfileSector);
         }
     }
 
