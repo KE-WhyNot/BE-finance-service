@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public class TradingService {
                 .user(user)
                 .stock(stock)
                 .sector(stock.getSector())
-                .executedAt(LocalDateTime.now())
+                .executedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isBuy(1) // 매수
                 .quantity(quantity)
                 .price(currentPrice)
@@ -117,7 +118,7 @@ public class TradingService {
                 .user(user)
                 .stock(stock)
                 .sector(stock.getSector())
-                .executedAt(LocalDateTime.now())
+                .executedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isBuy(0) // 매도
                 .quantity(quantity)
                 .price(currentPrice)

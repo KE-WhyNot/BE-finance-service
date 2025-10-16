@@ -28,7 +28,16 @@ public class InvestmentProfileController implements BaseApi {
      * 투자성향 설문을 완료하거나 새 프로필을 생성 및 저장
      */
 
-    @Operation(summary = "투자성향 설문 완료", description = "투자성향 설문을 완료, 새 프로필을 생성 및 저장합니다.")
+    @Operation(
+        summary = "투자성향 설문 완료", 
+        description = "투자성향 설문을 완료, 새 프로필을 생성 및 저장합니다.\n\n" +
+                     "**투자성향 유형(investmentProfile):** CONSERVATIVE, CONSERVATIVE_SEEKING, RISK_NEUTRAL, AGGRESSIVE, VERY_AGGRESSIVE\n\n" +
+                     "**투자 목표(investmentGoal):** EDUCATION, LIVING_EXPENSES, HOUSE_PURCHASE, ASSET_GROWTH, DEBT_REPAYMENT\n\n" +
+                     "**감당가능 손실(lossTolerance):** NO_LOSS, TEN_PERCENT, THIRTY_PERCENT, FIFTY_PERCENT, SEVENTY_PERCENT, FULL_AMOUNT\n\n" +
+                     "**금융 이해도(financialKnowledge):** VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH\n\n" +
+                     "**기대 이익(expectedProfit):** ONE_FIFTY_PERCENT, TWO_HUNDRED_PERCENT, TWO_FIFTY_PERCENT, THREE_HUNDRED_PERCENT_PLUS\n\n" +
+                     "**관심섹터(interestedSectorNames):** 화학, 제약, 전기·전자, 운송장비·부품, 기타금융, 기계·장비, 금속, 건설, IT 서비스"
+    )
     @PostMapping("/complete")
     public BaseResponse<InvestmentProfileResponse> completeInvestmentProfile(
             @RequestBody CompleteInvestmentProfileRequest request) {
@@ -53,7 +62,16 @@ public class InvestmentProfileController implements BaseApi {
      * 특정 사용자 투자성향 프로필 수정
      */
 
-    @Operation(summary = "내 투자성향 수정", description = "사용자의 투자성향 프로필 정보를 수정합니다.")
+    @Operation(
+        summary = "내 투자성향 수정", 
+        description = "사용자의 투자성향 프로필을 수정합니다.\n\n" +
+                    "**투자성향 유형(investmentProfile):** CONSERVATIVE, CONSERVATIVE_SEEKING, RISK_NEUTRAL, AGGRESSIVE, VERY_AGGRESSIVE\n\n" +
+                     "**투자 목표(investmentGoal):** EDUCATION, LIVING_EXPENSES, HOUSE_PURCHASE, ASSET_GROWTH, DEBT_REPAYMENT\n\n" +
+                     "**감당가능 손실(lossTolerance):** NO_LOSS, TEN_PERCENT, THIRTY_PERCENT, FIFTY_PERCENT, SEVENTY_PERCENT, FULL_AMOUNT\n\n" +
+                     "**금융 이해도(financialKnowledge):** VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH\n\n" +
+                     "**기대 이익(expectedProfit):** ONE_FIFTY_PERCENT, TWO_HUNDRED_PERCENT, TWO_FIFTY_PERCENT, THREE_HUNDRED_PERCENT_PLUS\n\n" +
+                     "**관심섹터(interestedSectorNames):** 화학, 제약, 전기·전자, 운송장비·부품, 기타금융, 기계·장비, 금속, 건설, IT 서비스"
+    )
     @PatchMapping("/my")
     public BaseResponse<InvestmentProfileResponse> updateMyInvestmentProfile(
             @RequestBody UpdateInvestmentProfileRequest request) {
