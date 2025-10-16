@@ -28,6 +28,18 @@ public class StockWebSocketClient extends WebSocketClient {
         this.messageConsumer = messageConsumer;
     }
 
+    public String getAppkey() {
+        return appkey;
+    }
+
+    public String getTrId() {
+        return trId;
+    }
+
+    public List<String> getTrKeys() {
+        return trKeys;
+    }
+
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         log.info("WebSocket 연결 성공! (appkey={}, trId={})", appkey, trId);

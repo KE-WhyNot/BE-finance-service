@@ -17,7 +17,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(stockFrontendWebSocketHandler, "/ws/realtime")
-                .setAllowedOrigins("http://localhost:3000", "http://localhost:8081", "null")
+                .setAllowedOrigins("http://localhost:3000", "http://localhost:8081", "https://finance.youth-fi.com")
                 .setAllowedOriginPatterns("*");
     }
 }

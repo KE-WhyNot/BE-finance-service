@@ -8,6 +8,8 @@ public class RedisConstants {
     // KIS API 관련 Redis 키 패턴
     public static final String KIS_TOKEN_PREFIX = "kis:token:";
     public static final String KIS_EXPIRY_PREFIX = "kis:expiry:";
+    public static final String KIS_WS_APPROVAL_PREFIX = "kis:ws:approval:";
+    public static final String KIS_WS_EXPIRY_PREFIX = "kis:ws:expiry:";
     
     // 차트 캐시 관련 Redis 키 패턴
     public static final String CHART_CACHE_PREFIX = "chart:";
@@ -23,6 +25,12 @@ public class RedisConstants {
     
     public static String buildKisExpiryKey(String appkey) {
         return KIS_EXPIRY_PREFIX + appkey;
+    }
+    public static String buildKisWsApprovalKey(String appkey) {
+        return KIS_WS_APPROVAL_PREFIX + appkey;
+    }
+    public static String buildKisWsExpiryKey(String appkey) {
+        return KIS_WS_EXPIRY_PREFIX + appkey;
     }
     
     public static String buildChartCacheKey(String chartType, String stockCode, String range) {

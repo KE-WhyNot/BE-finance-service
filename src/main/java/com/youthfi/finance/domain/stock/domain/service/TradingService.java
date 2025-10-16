@@ -15,6 +15,7 @@ import com.youthfi.finance.domain.stock.application.dto.response.StockCurrentPri
 import com.youthfi.finance.domain.stock.application.usecase.StockApiUseCase;
 import com.youthfi.finance.global.exception.StockException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class TradingService {
 
     private final ExecutionRepository executionRepository;
@@ -68,6 +70,8 @@ public class TradingService {
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
+                .stockNameSnapshot(stock.getStockName())
+                .userBalanceSnapshot(user.getBalance()) // 매수 후 잔고 스냅샷
                 .build();
         Execution saved = executionRepository.save(execution);
 
@@ -118,6 +122,8 @@ public class TradingService {
                 .quantity(quantity)
                 .price(currentPrice)
                 .totalPrice(totalPrice)
+                .stockNameSnapshot(stock.getStockName())
+                .userBalanceSnapshot(user.getBalance()) // 매도 후 잔고 스냅샷
                 .build();
         Execution saved = executionRepository.save(execution);
 
@@ -125,7 +131,14 @@ public class TradingService {
         UserStock userStock = userStockRepository.findByUserUserIdAndStockStockId(userId, stockId)
                 .orElseThrow(() -> StockException.userStockNotFound());
         userStock.subtractQuantity(quantity);
-        userStockRepository.save(userStock);
+        
+        // 수량이 0이 되면 UserStock 레코드 삭제
+        if (userStock.getHoldingQuantity() == 0) {
+            userStockRepository.delete(userStock);
+            log.info("보유 수량이 0이 되어 UserStock 삭제 - 사용자: {}, 종목: {}", userId, stockId);
+        } else {
+            userStockRepository.save(userStock);
+        }
 
         return saved;
     }
