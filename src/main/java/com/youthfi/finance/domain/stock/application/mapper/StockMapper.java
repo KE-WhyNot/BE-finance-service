@@ -28,7 +28,8 @@ public class StockMapper {
                 execution.getQuantity().intValue(),
                 execution.getPrice(),
                 execution.getTotalPrice(),
-                execution.getExecutedAt()
+                execution.getExecutedAt(),
+                execution.getUserBalanceSnapshot()
         );
     }
 

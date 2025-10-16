@@ -32,5 +32,8 @@ public record ExecutionResponse(
     BigDecimal totalAmount,
 
     @Schema(description = "거래일시", example = "2025-01-01T10:30:00")
-    LocalDateTime executedAt
+    LocalDateTime executedAt,
+
+    @Schema(description = "거래 후 잔고", example = "5000000.00")
+    BigDecimal userBalance
 ) {}
