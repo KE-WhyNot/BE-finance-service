@@ -83,7 +83,6 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
         
         // 공개 엔드포인트는 인증 건너뛰기
         boolean shouldSkip =
-               path.startsWith("/ws/") ||
                path.startsWith("/swagger-ui") ||
                path.startsWith("/v3/api-docs") ||
                path.startsWith("/api-docs") ||
@@ -92,7 +91,6 @@ public class XUserAuthenticationFilter extends OncePerRequestFilter {
                path.equals("/api/stock/token-status") ||
                path.equals("/api/stock/current-price") ||
                path.startsWith("/api/stock/chart/") ||
-               path.startsWith("/api/stock/ws/") ||
                path.contains("swagger") ||
                path.contains("api-docs") ||
                path.equals("/api-docs/swagger-config");
