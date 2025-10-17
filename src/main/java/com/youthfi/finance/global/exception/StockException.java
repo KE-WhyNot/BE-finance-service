@@ -128,12 +128,6 @@ public class StockException extends RestApiException {
     }
 
 
-    // WebSocket 관련 편의 메서드
-
-    public static StockException websocketConnectionFailed(Throwable cause) {
-        return new StockException(StockErrorStatus.WEBSOCKET_CONNECTION_FAILED, 
-            "WebSocket 연결에 실패했습니다.", cause);
-    }
 
     // 유틸리티 메서드들
 

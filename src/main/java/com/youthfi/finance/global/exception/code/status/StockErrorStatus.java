@@ -74,15 +74,6 @@ public enum StockErrorStatus implements BaseCodeInterface {
     KIS_API_INVALID_RESPONSE_STRUCTURE(HttpStatus.BAD_GATEWAY, "STOCK10010", "KIS API 응답 구조가 올바르지 않습니다."),
 
     // ===========================================
-    // WebSocket 관련 예외
-    // ===========================================
-    WEBSOCKET_CONNECTION_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "STOCK11001", "WebSocket 연결에 실패했습니다."),
-    WEBSOCKET_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "STOCK11002", "WebSocket 인증에 실패했습니다."),
-    WEBSOCKET_SUBSCRIPTION_FAILED(HttpStatus.BAD_REQUEST, "STOCK11003", "WebSocket 구독에 실패했습니다."),
-    WEBSOCKET_MESSAGE_PARSING_FAILED(HttpStatus.BAD_REQUEST, "STOCK11004", "WebSocket 메시지 파싱에 실패했습니다."),
-
-
-    // ===========================================
     // 섹터 관련 예외
     // ===========================================
     SECTOR_NOT_FOUND(HttpStatus.NOT_FOUND, "STOCK13001", "섹터를 찾을 수 없습니다."),

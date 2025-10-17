@@ -18,9 +18,6 @@ public class KisApiEndpoints {
     // API 카테고리
     public static final String DOMESTIC_STOCK = "국내주식";
     
-    // WebSocket 승인 키 발급 API
-    public static final String WEBSOCKET_APPROVAL = "/oauth2/Approval";
-    
     // 토큰 발급 API
     public static final String TOKEN_ISSUANCE = "/oauth2/tokenP";
     
@@ -31,11 +28,6 @@ public class KisApiEndpoints {
     // TR ID 상수
     public static final String DAILY_CHART_TR_ID = "FHKST03010100";
     public static final String MINUTE_CHART_TR_ID = "FHKST03010200";
-    public static final String STOCK_ASKING_PRICE_TR_ID = "H0STASP0";
-    public static final String STOCK_CONCLUSION_TR_ID = "H0STCNT0";
-    
-    // WebSocket URL
-    public static final String WEBSOCKET_URL = "ws://ops.koreainvestment.com:21000";
     
     // 기타 상수
     public static final String CUSTOMER_TYPE_PERSONAL = "P"; // 개인고객
