@@ -1,5 +1,6 @@
 package com.youthfi.finance.domain.portfolio.ui;
 
+import java.util.concurrent.CompletableFuture;
 import org.springframework.web.bind.annotation.*;
 import com.youthfi.finance.domain.portfolio.application.dto.request.CompleteInvestmentProfileRequest;
 import com.youthfi.finance.domain.portfolio.application.dto.request.UpdateInvestmentProfileRequest;
@@ -14,7 +15,9 @@ import com.youthfi.finance.global.swagger.BaseApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user/investment-profile")
 @RequiredArgsConstructor
@@ -96,12 +99,22 @@ public class InvestmentProfileController implements BaseApi {
      * 투자성향 프로필을 LLM Domain으로 전송하여 포트폴리오 추천 요청, 응답 생성.
      */
     
-    @Operation(summary = "LLM 포트폴리오 추천 요청", description = "투자성향 프로필을 기반으로 포트폴리오를 생성하고 저장합니다.")
+    @Operation(summary = "LLM 포트폴리오 추천 요청", description = "투자성향 프로필을 기반으로 포트폴리오를 생성하고 저장합니다. 비동기 처리로 즉시 응답합니다.")
     @PostMapping("/send-to-llm")
-    public BaseResponse<PortfolioResponse> sendProfileToLLM() {
+    public BaseResponse<String> sendProfileToLLM() {
         String userId = SecurityUtils.getCurrentUserId();
-        PortfolioResponse response = portfolioRecommendationUseCase.generateAiPortfolioRecommendation(userId);
-        return BaseResponse.onSuccess(response);
+        
+        // 백에서 포트폴리오 생성
+        CompletableFuture.runAsync(() -> {
+            try {
+                portfolioRecommendationUseCase.generateAiPortfolioRecommendation(userId);
+                log.info("포트폴리오 생성 완료: userId={}", userId);
+            } catch (Exception e) {
+                log.error("포트폴리오 생성 실패: userId={}, error={}", userId, e.getMessage(), e);
+            }
+        });
+        
+        return BaseResponse.onSuccess("포트폴리오 생성이 시작되었습니다. 완료 시 포트폴리오 목록에서 확인하실 수 있습니다.");
     }
 }
 

@@ -49,14 +49,12 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/h2-console/**",
                     "/actuator/**",
-                    "/ws/**",
                     "/api/stock/token-status",
                     "/api/stock/current-price",
-                    "/api/stock/chart/**",
-                    "/api/stock/ws/**"
+                    "/api/stock/chart/**"
                 ).permitAll()
                 
-                // 인증이 필요한 엔드포인트 (WebSocket 제외)
+                // 인증이 필요한 엔드포인트
                 .requestMatchers(
                     "/api/user/**",
                     "/api/stock/trading/**",
