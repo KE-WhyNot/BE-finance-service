@@ -41,11 +41,16 @@ public class PortfolioStock extends BaseEntity {
     @Column(name = "allocationPct", nullable = false, precision = 5, scale = 2)
     private BigDecimal allocationPct;
 
+    @jakarta.persistence.Basic(fetch = FetchType.LAZY)
+    @Column(name = "reason", columnDefinition = "TEXT")
+    private String reason;
+
     @Builder
-    public PortfolioStock(Portfolio portfolio, Stock stock, BigDecimal allocationPct) {
+    public PortfolioStock(Portfolio portfolio, Stock stock, BigDecimal allocationPct, String reason) {
         this.portfolio = portfolio;
         this.stock = stock;
         this.allocationPct = allocationPct;
+        this.reason = reason;
     }
 
     public void setPortfolio(Portfolio portfolio) {
