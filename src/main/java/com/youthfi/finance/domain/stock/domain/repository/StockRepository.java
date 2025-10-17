@@ -21,6 +21,6 @@ public interface StockRepository extends JpaRepository<Stock, String> {
     List<Stock> findBySectorSectorId(Long sectorId);
     List<Stock> findBySectorSectorName(String sectorName);
     
-    // WebSocket용 전체 종목 조회
+    // 전체 종목 조회
     List<Stock> findAllByOrderByStockId();
 }
