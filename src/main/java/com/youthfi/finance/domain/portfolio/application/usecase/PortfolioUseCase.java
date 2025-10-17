@@ -63,12 +63,13 @@ public class PortfolioUseCase {
                 userId,
                 "AI 추천 포트폴리오",
                 riskAnalysis.highestValue(),
-                riskAnalysis.lowestValue()
+                riskAnalysis.lowestValue(),
+                llmResponse.allocationSavings()
         );
 
         // 5. 포트폴리오에 주식 추가 (null 가드 적용 리스트 사용)
         for (CompleteInvestmentProfileResponse.RecommendedStock stock : safeStocks) {
-            portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.stockId(), stock.allocationPct());
+            portfolioStockService.addStockToPortfolio(portfolio.getPortfolioId(), stock.stockId(), stock.allocationPct(), stock.reason());
         }
 
         // 6. CompleteInvestmentProfileResponse.RecommendedStock을 PortfolioResponse.RecommendedStock으로 변환 (null 가드 적용 리스트 사용)
