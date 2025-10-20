@@ -72,14 +72,14 @@ public class ChartController implements BaseApi {
     }
     
     /**
-     * 분봉 차트 조회 (당일) - 실시간 전용
+     * 분봉 차트 조회 (당일) - 캐시 우선
      */
     @GetMapping("/{stockCode}/minute")
     @Operation(summary = "분봉 차트 조회", description = "당일의 분봉 차트 데이터를 실시간으로 조회합니다.")
     public ResponseEntity<BaseResponse<ChartDataResponse>> getMinuteChart(
             @PathVariable String stockCode) {
         
-        ChartDataResponse chartData = kisChartApiClient.getMinuteChart(stockCode);
+        ChartDataResponse chartData = chartService.getMinuteChart(stockCode);
         
         return ResponseEntity.ok(BaseResponse.onSuccess(chartData));
     }
