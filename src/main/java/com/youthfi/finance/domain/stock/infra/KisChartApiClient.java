@@ -274,6 +274,160 @@ public class KisChartApiClient {
             throw StockException.kisApiConnectionFailed(e);
         }
     }
+
+    /**
+     * 분봉 데이터 증분 조회: 주어진 HHmm 이후부터 현재 직전 분까지 수집
+     */
+    public ChartDataResponse getMinuteChartSince(String stockCode, String sinceHHmm) {
+        try {
+            String appkey = kisApiProperties.getKeys().get(0).getAppkey();
+            String appsecret = kisApiProperties.getKeys().get(0).getAppsecret();
+            String accessToken = kisTokenService.getValidToken(appkey, appsecret);
+
+            HttpHeaders headers = createHeaders(accessToken, appkey, appsecret, KisApiEndpoints.MINUTE_CHART_TR_ID);
+
+            ZoneId KST = ZoneId.of("Asia/Seoul");
+            LocalDate today = LocalDate.now(KST);
+            String todayStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String nowHHmmss = LocalDateTime.now(KST).format(DateTimeFormatter.ofPattern("HHmmss"));
+            String sessionCloseHHmmss = "153000";
+            String sessionEndHHmmss = (nowHHmmss.compareTo(sessionCloseHHmmss) > 0) ? sessionCloseHHmmss : nowHHmmss;
+
+            String normalizedSince = (sinceHHmm != null && sinceHHmm.length() >= 4) ? sinceHHmm.substring(0, 4) : null;
+            String startHHmmss = (normalizedSince != null)
+                    ? normalizedSince + "00"
+                    : "090000";
+            String lastFetchedHHmm = normalizedSince; // 이미 보유한 마지막 분은 건너뜀
+            List<Map<String, Object>> allItems = new ArrayList<>();
+
+            int safety = 0;
+            int rateLimitRetries = 0;
+
+            // 루프(최대 240개임)
+            while (safety++ < 240) {
+                String url = buildMinuteChartUrl(stockCode, startHHmmss);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                ResponseEntity<Map> response;
+                try {
+                    response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+                } catch (HttpServerErrorException e) {
+                    String body = e.getResponseBodyAsString();
+
+                    // 서버 바디에 EGW00201 메시지가 있으면 레이트리밋 백오프 후 재시도 -> 이거는 kis 서버에서 주는 값임.
+                    // 혹은 output2 body가 null이거나 비어있으면 종료시킴.
+                    if (body != null && body.contains("EGW00201")) {
+                        if (rateLimitRetries++ < 3) {
+                            try { Thread.sleep(1200); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                            continue;
+                        }
+                    }
+                    throw e;
+                }
+                Map<String, Object> body = response.getBody();
+                if (body == null || !"0".equals(String.valueOf(body.get("rt_cd")))) {
+                    break;
+                }
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("output2");
+                if (items == null || items.isEmpty()) {
+                    break;
+                }
+                
+                // 오늘 데이터만 누적, 중복/역행 제거
+                String maxHHmm = lastFetchedHHmm;
+                for (Map<String, Object> item : items) {
+                    String dateStr = asString(item.get("stck_bsop_date"));
+                    if (!todayStr.equals(dateStr)) continue;
+                    String rawHour = asString(item.get("stck_cntg_hour"));
+                    String hhmm = normalizeToHHmm(rawHour);
+                    if (hhmm == null) continue;
+                    if (lastFetchedHHmm != null && hhmm.compareTo(lastFetchedHHmm) <= 0) continue;
+                    allItems.add(item);
+                    if (maxHHmm == null || hhmm.compareTo(maxHHmm) > 0) {
+                        maxHHmm = hhmm;
+                    }
+                }
+                // 최신분 개싱, 다음 조회 시각 계산
+                if (maxHHmm == null) {
+                    break;
+                }
+                lastFetchedHHmm = maxHHmm;
+                String candidateNext = toPlus30MinEndOfMinuteHHmmss(maxHHmm);
+                startHHmmss = (candidateNext.compareTo(sessionEndHHmmss) > 0) ? sessionEndHHmmss : candidateNext;
+
+                if (maxHHmm.compareTo("1530") >= 0) {
+                    break;
+                }
+                String currentHHmm = LocalDateTime.now(KST).minusMinutes(1).format(DateTimeFormatter.ofPattern("HHmm"));
+                if (maxHHmm.compareTo(currentHHmm) >= 0) {
+                    break;
+                }
+
+                try { Thread.sleep(300); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+            }
+
+            // 누적 거래량 값 오름차순 정렬
+            List<CandleDataResponse> candles = new ArrayList<>();
+            allItems.sort((a, b) -> {
+                String ta = asString(a.get("stck_cntg_hour"));
+                String tb = asString(b.get("stck_cntg_hour"));
+                return ta.compareTo(tb);
+            });
+
+            // 누적 거래량 계산
+            Long prevAcmlVol = null;
+            String lastDateForDiff = null;
+            for (Map<String, Object> item : allItems) {
+                String dateStr = asString(item.get("stck_bsop_date"));
+                String timeStr = asString(item.get("stck_cntg_hour"));
+                String openStr = asString(item.get("stck_oprc"));
+                String highStr = asString(item.get("stck_hgpr"));
+                String lowStr = asString(item.get("stck_lwpr"));
+                String closeStr = asString(item.get("stck_prpr"));
+                String cntgVolStr = asString(item.get("cntg_vol"));
+                String acmlVolStr = asString(item.get("acml_vol"));
+
+                if (lastDateForDiff == null || !lastDateForDiff.equals(dateStr)) {
+                    prevAcmlVol = null;
+                    lastDateForDiff = dateStr;
+                }
+                
+            // 분 거래량 계산
+                Long volumeVal;
+                Long cntgVol = parseLongOrZero(cntgVolStr);
+                if (cntgVol != null && cntgVol > 0) {
+                    volumeVal = cntgVol;
+                } else {
+                    Long acmlVol = parseLongOrZero(acmlVolStr);
+                    if (acmlVol != null && prevAcmlVol != null && acmlVol >= prevAcmlVol) {
+                        volumeVal = acmlVol - prevAcmlVol;
+                    } else {
+                        volumeVal = 0L;
+                    }
+                    if (acmlVolStr != null) {
+                        prevAcmlVol = parseLongOrZero(acmlVolStr);
+                    }
+                }
+
+                candles.add(CandleDataResponse.of(
+                        dateStr,
+                        formatHHmm(timeStr),
+                        openStr,
+                        highStr,
+                        lowStr,
+                        closeStr,
+                        String.valueOf(volumeVal)
+                ));
+            }
+
+            return new ChartDataResponse(stockCode, "1min", "today", candles,
+                    LocalDateTime.now(KST).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        } catch (Exception e) {
+            log.error("분봉 증분 데이터 조회 실패: stockCode={}, sinceHHmm={}", stockCode, sinceHHmm, e);
+            throw StockException.kisApiConnectionFailed(e);
+        }
+    }
     
     private HttpHeaders createHeaders(String accessToken, String appkey, String appsecret, String trId) {
         HttpHeaders headers = new HttpHeaders();
