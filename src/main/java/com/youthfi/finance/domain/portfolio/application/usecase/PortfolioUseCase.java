@@ -53,10 +53,9 @@ public class PortfolioUseCase {
                 java.util.Optional.ofNullable(llmResponse.recommendedStocks())
                         .orElse(java.util.Collections.emptyList());
 
-        java.math.BigDecimal fixedInvestmentAmount = new java.math.BigDecimal("10000000");
         PortfolioRiskAnalysisResponse riskAnalysis = portfolioRiskCalculator.calculatePortfolioRisk(
                 safeStocks,
-                fixedInvestmentAmount
+                investmentProfile.getAvailableAssets()
         );
 
         // 4. 포트폴리오 엔티티 생성 및 저장

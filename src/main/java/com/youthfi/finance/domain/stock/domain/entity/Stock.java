@@ -37,6 +37,7 @@ public class Stock extends BaseEntity {
     @Column(name = "stockName", nullable = false, length = 100)
     private String stockName;
 
+
     @Column(name = "stockImage", length = 500)
     private String stockImage;
 

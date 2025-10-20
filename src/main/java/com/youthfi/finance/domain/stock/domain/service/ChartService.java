@@ -30,36 +30,17 @@ public class ChartService {
         
         // 1. 캐시에서 조회
         ChartDataResponse cachedData = getCachedData(request);
-        if ("1min".equals(request.period()) && cachedData != null && cachedData.candles() != null && !cachedData.candles().isEmpty()) {
-            // 분봉: 스냅샷 + 증분 병합
-            String lastHHmm = cachedData.candles().get(cachedData.candles().size() - 1).time().replace(":", "");
-            ChartDataResponse incremental = kisChartApiClient.getMinuteChartSince(request.stockCode(), lastHHmm);
-            if (incremental != null && incremental.candles() != null && !incremental.candles().isEmpty()) {
-                java.util.List<com.youthfi.finance.domain.stock.application.dto.response.CandleDataResponse> merged = new java.util.ArrayList<>(cachedData.candles());
-                merged.addAll(incremental.candles());
-                ChartDataResponse mergedResp = new ChartDataResponse(
-                        request.stockCode(),
-                        request.period(),
-                        request.range(),
-                        merged,
-                        incremental.lastUpdated()
-                );
-                saveToCache(request, mergedResp);
-                return mergedResp;
-            }
-            return cachedData;
-        }
         if (cachedData != null && !cachedData.candles().isEmpty()) {
             log.debug("캐시에서 데이터 반환: {}", request);
             return cachedData;
         }
-
-        // 2. KIS API에서 조회 (스냅샷 생성)
+        
+        // 2. KIS API에서 조회
         ChartDataResponse apiData = getApiData(request);
-
+        
         // 3. 캐시에 저장
         saveToCache(request, apiData);
-
+        
         return apiData;
     }
     
@@ -95,7 +76,6 @@ public class ChartService {
             case "1d" -> chartCacheService.getDailyChart(request.stockCode(), request.range());
             case "1m" -> chartCacheService.getMonthlyChart(request.stockCode(), request.range());
             case "1y" -> chartCacheService.getYearlyChart(request.stockCode(), request.range());
-            case "1min" -> chartCacheService.getMinuteChart(request.stockCode());
             default -> null;
         };
     }
@@ -117,7 +97,6 @@ public class ChartService {
                 int years = extractYears(request.range());
                 yield kisChartApiClient.getYearlyChart(request.stockCode(), years);
             }
-            case "1min" -> kisChartApiClient.getMinuteChart(request.stockCode());
             
             default -> ChartDataResponse.empty(request.stockCode(), request.period(), request.range());
         };
@@ -135,16 +114,8 @@ public class ChartService {
             case "1d" -> chartCacheService.saveDailyChart(request.stockCode(), request.range(), data);
             case "1m" -> chartCacheService.saveMonthlyChart(request.stockCode(), request.range(), data);
             case "1y" -> chartCacheService.saveYearlyChart(request.stockCode(), request.range(), data);
-            case "1min" -> chartCacheService.saveMinuteChart(request.stockCode(), data);
+            // 분봉은 캐시 없이 실시간만
         }
-    }
-
-    /**
-     * 분봉 데이터 조회 (today)
-     */
-    public ChartDataResponse getMinuteChart(String stockCode) {
-        ChartRequest request = new ChartRequest(stockCode, "1min", "today");
-        return getChartData(request);
     }
     
     /**
