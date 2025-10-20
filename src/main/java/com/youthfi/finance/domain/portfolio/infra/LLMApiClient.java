@@ -39,7 +39,7 @@ public class LLMApiClient {
             payload.put("profileId", investmentProfile.profileId());
             payload.put("userId", investmentProfile.userId());
             payload.put("investmentProfile", toKoreanInvestmentProfile(investmentProfile));
-            payload.put("availableAssets", investmentProfile.availableAssets());
+            payload.put("availableAssets", new java.math.BigDecimal("10000000"));
             payload.put("lossTolerance", toNumericLossTolerance(investmentProfile));
             payload.put("financialKnowledge", toKoreanFinancialKnowledge(investmentProfile));
             payload.put("expectedProfit", toKoreanExpectedProfit(investmentProfile));
