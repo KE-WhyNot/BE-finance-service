@@ -9,6 +9,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 차트 데이터 Redis 캐싱 서비스
@@ -47,7 +49,14 @@ public class ChartCacheService {
         log.debug("연봉 캐시 저장: key={}", key);
     }
     
-    // 분봉 캐시 메서드 제거됨 - 실시간 전용
+    /**
+     * 분봉 데이터 캐시 저장 (동적 TTL)
+     */
+    public void saveMinuteChart(String stockCode, ChartDataResponse chartData) {
+        String key = RedisConstants.buildMinuteChartKey(stockCode, "today");
+        redisChartDataTemplate.opsForValue().set(key, chartData, resolveMinuteTtl());
+        log.debug("분봉 캐시 저장: key={}", key);
+    }
     
     /**
      * 일봉 데이터 캐시 조회
@@ -79,7 +88,15 @@ public class ChartCacheService {
         return data;
     }
     
-    // 분봉 캐시 메서드 제거됨 - 실시간 전용
+    /**
+     * 분봉 데이터 캐시 조회
+     */
+    public ChartDataResponse getMinuteChart(String stockCode) {
+        String key = RedisConstants.buildMinuteChartKey(stockCode, "today");
+        ChartDataResponse data = redisChartDataTemplate.opsForValue().get(key);
+        log.debug("분봉 캐시 조회: key={}, found={}", key, data != null);
+        return data;
+    }
     
     /**
      * 캐시 삭제
@@ -98,9 +115,21 @@ public class ChartCacheService {
             case "1d" -> RedisConstants.buildDailyChartKey(stockCode, range);
             case "1m" -> RedisConstants.buildMonthlyChartKey(stockCode, range);
             case "1y" -> RedisConstants.buildYearlyChartKey(stockCode, range);
-            // 분봉은 캐시 없이 실시간만
+            case "1min" -> RedisConstants.buildMinuteChartKey(stockCode, range);
             default -> throw new IllegalArgumentException("Invalid chart period: " + period);
         };
+    }
+
+    /**
+     다음 자정(00:00)까지 캐싱데이터 유지
+     */
+    private Duration resolveMinuteTtl() {
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        LocalDateTime now = LocalDateTime.now(kst);
+        // 항상 다음 자정(00:00 KST)까지 유지
+        LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay();
+        Duration ttl = Duration.between(now, nextMidnight);
+        return ttl.isNegative() ? Duration.ofMinutes(1) : ttl;
     }
 
 }
